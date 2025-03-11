@@ -1,0 +1,5 @@
+// Créez un fichier .env à la racine du projet
+// DB_USER=abdouazizdiop583
+// DB_PASSWORD=votre_mot_de_passe
+// DB_HOST=cluster0.imenx.mongodb.net
+// DB_NAME=ndamaar
