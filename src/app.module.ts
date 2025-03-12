@@ -28,6 +28,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
+import { OffersModule } from './offers/offers.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -55,6 +56,7 @@ import { VehiclesModule } from './vehicles/vehicles.module';
     AuthModule,
     CloudinaryModule,
     VehiclesModule,
+    OffersModule,
   ],
   controllers: [AppController],
   providers: [
