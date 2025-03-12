@@ -20,6 +20,7 @@ const create_vehicle_dto_1 = require("./dto/create-vehicle.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
+const update_vehicle_dto_1 = require("./dto/update-vehicle.dto");
 let VehiclesController = class VehiclesController {
     constructor(vehiclesService) {
         this.vehiclesService = vehiclesService;
@@ -41,6 +42,12 @@ let VehiclesController = class VehiclesController {
     }
     async deleteVehicle(id) {
         return this.vehiclesService.deleteVehicle(id);
+    }
+    async deactivateVehicle(id) {
+        return this.vehiclesService.deactivateVehicle(id);
+    }
+    async updateVehicle(id, updateVehicleDto, files) {
+        return this.vehiclesService.updateVehicle(id, updateVehicleDto, files);
     }
 };
 exports.VehiclesController = VehiclesController;
@@ -91,6 +98,25 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], VehiclesController.prototype, "deleteVehicle", null);
+__decorate([
+    (0, common_1.Put)(':id/deactivate'),
+    (0, roles_decorator_1.Roles)('gérant'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], VehiclesController.prototype, "deactivateVehicle", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    (0, roles_decorator_1.Roles)('gérant'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('images', 10)),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
+    __param(2, (0, common_1.UploadedFiles)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, update_vehicle_dto_1.UpdateVehicleDto, Array]),
+    __metadata("design:returntype", Promise)
+], VehiclesController.prototype, "updateVehicle", null);
 exports.VehiclesController = VehiclesController = __decorate([
     (0, common_1.Controller)('vehicles'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

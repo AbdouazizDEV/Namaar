@@ -83,6 +83,37 @@ let VehiclesService = class VehiclesService {
         }
         return { message: 'Véhicule et images associées supprimés avec succès' };
     }
+    async updateVehicle(id, updateVehicleDto, files) {
+        const vehicle = await this.voitureModel.findById(id);
+        if (!vehicle) {
+            throw new common_1.NotFoundException(`Véhicule avec l'ID ${id} non trouvé`);
+        }
+        Object.assign(vehicle, updateVehicleDto);
+        if (files && files.length > 0) {
+            const uploadResults = await this.cloudinaryService.uploadMultipleImages(files);
+            const imageUrls = uploadResults.map(result => result.secure_url);
+            vehicle.images = [imageUrls[0]];
+            const imagePromises = uploadResults.map((result, index) => {
+                const imageDoc = new this.imageModel({
+                    voiture_id: vehicle._id,
+                    chemin: result.secure_url,
+                    est_principale: index === 0,
+                    date_ajout: new Date(),
+                });
+                return imageDoc.save();
+            });
+            await Promise.all(imagePromises);
+        }
+        return vehicle.save();
+    }
+    async deactivateVehicle(id) {
+        const vehicle = await this.voitureModel.findById(id);
+        if (!vehicle) {
+            throw new common_1.NotFoundException(`Véhicule avec l'ID ${id} non trouvé`);
+        }
+        vehicle.disponibilite = false;
+        return vehicle.save();
+    }
 };
 exports.VehiclesService = VehiclesService;
 exports.VehiclesService = VehiclesService = __decorate([

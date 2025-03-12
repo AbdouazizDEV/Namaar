@@ -1,5 +1,6 @@
 import { VehiclesService } from './vehicles.service';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 export declare class VehiclesController {
     private vehiclesService;
     constructor(vehiclesService: VehiclesService);
@@ -11,4 +12,6 @@ export declare class VehiclesController {
     deleteVehicle(id: string): Promise<{
         message: string;
     }>;
+    deactivateVehicle(id: string): Promise<import("../schemas/voiture.schema").Voiture>;
+    updateVehicle(id: string, updateVehicleDto: UpdateVehicleDto, files?: Express.Multer.File[]): Promise<import("../schemas/voiture.schema").Voiture>;
 }

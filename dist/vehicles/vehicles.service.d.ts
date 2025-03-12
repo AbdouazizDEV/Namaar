@@ -2,6 +2,7 @@ import { Model } from 'mongoose';
 import { Voiture, VoitureDocument } from '../schemas/voiture.schema';
 import { Image, ImageDocument } from '../schemas/image.schema';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 export declare class VehiclesService {
     private voitureModel;
@@ -16,4 +17,6 @@ export declare class VehiclesService {
     deleteVehicle(id: string): Promise<{
         message: string;
     }>;
+    updateVehicle(id: string, updateVehicleDto: UpdateVehicleDto, files?: Express.Multer.File[]): Promise<Voiture>;
+    deactivateVehicle(id: string): Promise<Voiture>;
 }

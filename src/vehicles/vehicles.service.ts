@@ -9,6 +9,7 @@ import { Model } from 'mongoose';
 import { Voiture, VoitureDocument } from '../schemas/voiture.schema';
 import { Image, ImageDocument } from '../schemas/image.schema';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
@@ -117,5 +118,56 @@ export class VehiclesService {
     }
 
     return { message: 'Véhicule et images associées supprimés avec succès' };
+  }
+  async updateVehicle(
+    id: string,
+    updateVehicleDto: UpdateVehicleDto, 
+    files?: Express.Multer.File[],
+  ): Promise<Voiture> {
+    const vehicle = await this.voitureModel.findById(id);
+
+    if (!vehicle) {
+      throw new NotFoundException(`Véhicule avec l'ID ${id} non trouvé`);
+    }
+
+    // Mettre à jour les propriétés
+    Object.assign(vehicle, updateVehicleDto);
+
+    // Si des nouvelles images sont fournies
+    if (files && files.length > 0) {
+      // Upload des images sur Cloudinary
+      const uploadResults = await this.cloudinaryService.uploadMultipleImages(files);
+
+      // Récupérer les URLs des images
+      const imageUrls = uploadResults.map(result => result.secure_url);
+
+      // Mettre à jour l'image principale dans le document voiture
+      vehicle.images = [imageUrls[0]];
+
+      // Créer les entrées dans la table Image pour chaque nouvelle image
+      const imagePromises = uploadResults.map((result, index) => {
+        const imageDoc = new this.imageModel({
+          voiture_id: vehicle._id,
+          chemin: result.secure_url,
+          est_principale: index === 0, // La première image est l'image principale
+          date_ajout: new Date(),
+        });
+        return imageDoc.save();
+      });
+
+      await Promise.all(imagePromises);
+    }
+
+    return vehicle.save();
+  }
+  async deactivateVehicle(id: string): Promise<Voiture> {
+    const vehicle = await this.voitureModel.findById(id);
+
+    if (!vehicle) {
+      throw new NotFoundException(`Véhicule avec l'ID ${id} non trouvé`);
+    }
+
+    vehicle.disponibilite = false;
+    return vehicle.save();
   }
 }

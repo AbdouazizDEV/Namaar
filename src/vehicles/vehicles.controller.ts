@@ -18,6 +18,7 @@ import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 
 @Controller('vehicles')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -62,5 +63,22 @@ export class VehiclesController {
   @Roles('gérant')
   async deleteVehicle(@Param('id') id: string) {
     return this.vehiclesService.deleteVehicle(id);
+  }
+
+  @Put(':id/deactivate')
+  @Roles('gérant')
+  async deactivateVehicle(@Param('id') id: string) {
+    return this.vehiclesService.deactivateVehicle(id);
+  }
+
+  @Put(':id')
+  @Roles('gérant')
+  @UseInterceptors(FilesInterceptor('images', 10)) // Limite à 10 images
+  async updateVehicle(
+    @Param('id') id: string,
+    @Body(ValidationPipe) updateVehicleDto: UpdateVehicleDto,
+    @UploadedFiles() files?: Express.Multer.File[],
+  ) {
+    return this.vehiclesService.updateVehicle(id, updateVehicleDto, files);
   }
 }
