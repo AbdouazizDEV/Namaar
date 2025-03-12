@@ -23,6 +23,11 @@ const favori_schema_1 = require("./schemas/favori.schema");
 const authentification_schema_1 = require("./schemas/authentification.schema");
 const location_schema_1 = require("./schemas/location.schema");
 const image_schema_1 = require("./schemas/image.schema");
+const auth_module_1 = require("./auth/auth.module");
+const core_1 = require("@nestjs/core");
+const jwt_auth_guard_1 = require("./auth/jwt-auth.guard");
+const cloudinary_module_1 = require("./cloudinary/cloudinary.module");
+const vehicles_module_1 = require("./vehicles/vehicles.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -51,9 +56,18 @@ exports.AppModule = AppModule = __decorate([
                 { name: location_schema_1.Location.name, schema: location_schema_1.LocationSchema },
                 { name: image_schema_1.Image.name, schema: image_schema_1.ImageSchema },
             ]),
+            auth_module_1.AuthModule,
+            cloudinary_module_1.CloudinaryModule,
+            vehicles_module_1.VehiclesModule,
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        providers: [
+            app_service_1.AppService,
+            {
+                provide: core_1.APP_GUARD,
+                useClass: jwt_auth_guard_1.JwtAuthGuard,
+            },
+        ],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

@@ -23,6 +23,11 @@ import {
 } from './schemas/authentification.schema';
 import { Location, LocationSchema } from './schemas/location.schema';
 import { Image, ImageSchema } from './schemas/image.schema';
+import { AuthModule } from './auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -47,8 +52,17 @@ import { Image, ImageSchema } from './schemas/image.schema';
       { name: Location.name, schema: LocationSchema },
       { name: Image.name, schema: ImageSchema },
     ]),
+    AuthModule,
+    CloudinaryModule,
+    VehiclesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

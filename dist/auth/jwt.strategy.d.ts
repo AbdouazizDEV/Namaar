@@ -1,0 +1,16 @@
+import { Strategy } from 'passport-jwt';
+import { Model } from 'mongoose';
+import { User, UserDocument } from '../schemas/user.schema';
+declare const JwtStrategy_base: new (...args: [opt: import("passport-jwt").StrategyOptionsWithRequest] | [opt: import("passport-jwt").StrategyOptionsWithoutRequest]) => Strategy & {
+    validate(...args: any[]): unknown;
+};
+export declare class JwtStrategy extends JwtStrategy_base {
+    private userModel;
+    constructor(userModel: Model<UserDocument>);
+    validate(payload: any): Promise<import("mongoose").Document<unknown, {}, UserDocument> & User & import("mongoose").Document<unknown, any, any> & Required<{
+        _id: unknown;
+    }> & {
+        __v: number;
+    }>;
+}
+export {};
