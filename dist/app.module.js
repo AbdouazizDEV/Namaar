@@ -30,6 +30,7 @@ const cloudinary_module_1 = require("./cloudinary/cloudinary.module");
 const vehicles_module_1 = require("./vehicles/vehicles.module");
 const offers_module_1 = require("./offers/offers.module");
 const reservations_module_1 = require("./reservations/reservations.module");
+const clients_module_1 = require("./clients/clients.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -63,6 +64,7 @@ exports.AppModule = AppModule = __decorate([
             vehicles_module_1.VehiclesModule,
             offers_module_1.OffersModule,
             reservations_module_1.ReservationsModule,
+            clients_module_1.ClientsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

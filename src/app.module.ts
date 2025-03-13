@@ -30,6 +30,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { OffersModule } from './offers/offers.module';
 import { ReservationsModule } from './reservations/reservations.module';
+import { ClientsModule } from './clients/clients.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -59,6 +60,7 @@ import { ReservationsModule } from './reservations/reservations.module';
     VehiclesModule,
     OffersModule,
     ReservationsModule,
+    ClientsModule,
   ],
   controllers: [AppController],
   providers: [
