@@ -4,13 +4,13 @@ import { Voiture } from './voiture.schema';
 import { Offre } from './offre.schema';
 export type ReservationDocument = Reservation & Document;
 export declare class Reservation {
-    utilisateur_id: User;
-    voiture_id: Voiture;
+    utilisateur_id: User | string;
+    voiture_id: Voiture | string;
     date_debut: Date;
     date_fin: Date;
     statut: string;
     prix_total: number;
-    offre_id: Offre;
+    offre_id: Offre | string;
     date_reservation: Date;
 }
 export declare const ReservationSchema: MongooseSchema<Reservation, import("mongoose").Model<Reservation, any, any, any, Document<unknown, any, Reservation> & Reservation & {

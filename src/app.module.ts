@@ -29,6 +29,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { OffersModule } from './offers/offers.module';
+import { ReservationsModule } from './reservations/reservations.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -57,6 +58,7 @@ import { OffersModule } from './offers/offers.module';
     CloudinaryModule,
     VehiclesModule,
     OffersModule,
+    ReservationsModule,
   ],
   controllers: [AppController],
   providers: [

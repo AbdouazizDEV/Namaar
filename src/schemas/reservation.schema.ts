@@ -1,3 +1,4 @@
+// src/schemas/reservation.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { User } from './user.schema';
@@ -8,11 +9,11 @@ export type ReservationDocument = Reservation & Document;
 
 @Schema()
 export class Reservation {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  utilisateur_id: User;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Client', required: true })
+  utilisateur_id: User | string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Voiture', required: true })
-  voiture_id: Voiture;
+  voiture_id: Voiture | string;
 
   @Prop({ required: true })
   date_debut: Date;
@@ -30,7 +31,7 @@ export class Reservation {
   prix_total: number;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Offre' })
-  offre_id: Offre;
+  offre_id: Offre | string;
 
   @Prop({ default: Date.now })
   date_reservation: Date;

@@ -1,7 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-export type UserDocument = User & Document;
+// Cette interface définit le type complet avec l'ID que Mongoose ajoute
+export interface UserDocument extends Document {
+  _id: Types.ObjectId;
+  nom: string;
+  prenom: string;
+  email: string;
+  mot_de_passe: string;
+  role: string;
+  statut: string;
+}
 
 @Schema()
 export class User {

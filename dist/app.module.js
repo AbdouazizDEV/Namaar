@@ -29,6 +29,7 @@ const jwt_auth_guard_1 = require("./auth/jwt-auth.guard");
 const cloudinary_module_1 = require("./cloudinary/cloudinary.module");
 const vehicles_module_1 = require("./vehicles/vehicles.module");
 const offers_module_1 = require("./offers/offers.module");
+const reservations_module_1 = require("./reservations/reservations.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -61,6 +62,7 @@ exports.AppModule = AppModule = __decorate([
             cloudinary_module_1.CloudinaryModule,
             vehicles_module_1.VehiclesModule,
             offers_module_1.OffersModule,
+            reservations_module_1.ReservationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
