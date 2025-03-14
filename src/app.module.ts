@@ -37,6 +37,7 @@ import { ReservationsModule } from './reservations/reservations.module';
 import { ClientsModule } from './clients/clients.module';
 import { LocationsModule } from './locations/locations.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PublicModule } from './public/public.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ClientsModule,
     LocationsModule,
     DashboardModule,
+    PublicModule,
   ],
   controllers: [AppController],
   providers: [
