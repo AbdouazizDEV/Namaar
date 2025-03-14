@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 // Cette interface définit le type complet avec l'ID que Mongoose ajoute
 export interface UserDocument extends Document {
-  _id: Types.ObjectId;
+  _id: Types.ObjectId | string;
   nom: string;
   prenom: string;
   email: string;

@@ -3,8 +3,8 @@ import { Reservation } from './reservation.schema';
 import { Client } from './client.schema';
 export type FactureDocument = Facture & Document;
 export declare class Facture {
-    reservation_id: Reservation;
-    client_id: Client;
+    reservation_id: Reservation | string;
+    client_id: Client | string;
     date_emission: Date;
     date_echeance: Date;
     montant_total: number;

@@ -10,7 +10,7 @@ export declare class ClientsService {
         telephone: string | null;
         adresse: string | null;
         date_inscription: Date | null;
-        _id: import("mongoose").Types.ObjectId;
+        _id: import("mongoose").Types.ObjectId | string;
         nom: string;
         prenom: string;
         email: string;
@@ -33,7 +33,7 @@ export declare class ClientsService {
         telephone: string;
         adresse: string;
         date_inscription: Date;
-        _id: import("mongoose").Types.ObjectId;
+        _id: import("mongoose").Types.ObjectId | string;
         nom: string;
         prenom: string;
         email: string;

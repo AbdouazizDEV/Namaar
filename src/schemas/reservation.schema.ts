@@ -9,7 +9,7 @@ export type ReservationDocument = Reservation & Document;
 
 @Schema()
 export class Reservation {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Client', required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   utilisateur_id: User | string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Voiture', required: true })

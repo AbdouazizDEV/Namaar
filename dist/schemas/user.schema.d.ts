@@ -1,6 +1,6 @@
 import { Document, Types } from 'mongoose';
 export interface UserDocument extends Document {
-    _id: Types.ObjectId;
+    _id: Types.ObjectId | string;
     nom: string;
     prenom: string;
     email: string;

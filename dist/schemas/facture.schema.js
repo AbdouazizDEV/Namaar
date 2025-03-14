@@ -12,8 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FactureSchema = exports.Facture = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
-const reservation_schema_1 = require("./reservation.schema");
-const client_schema_1 = require("./client.schema");
 let Facture = class Facture {
 };
 exports.Facture = Facture;
@@ -23,11 +21,11 @@ __decorate([
         ref: 'Reservation',
         required: true,
     }),
-    __metadata("design:type", reservation_schema_1.Reservation)
+    __metadata("design:type", Object)
 ], Facture.prototype, "reservation_id", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Client', required: true }),
-    __metadata("design:type", client_schema_1.Client)
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Client', required: false }),
+    __metadata("design:type", Object)
 ], Facture.prototype, "client_id", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ required: true }),

@@ -3,8 +3,8 @@ import { Facture } from './facture.schema';
 import { Reservation } from './reservation.schema';
 export type PaiementDocument = Paiement & Document;
 export declare class Paiement {
-    facture_id: Facture;
-    reservation_id: Reservation;
+    facture_id: Facture | string;
+    reservation_id: Reservation | string;
     montant: number;
     methode: string;
     reference: string;

@@ -1,3 +1,4 @@
+// src/schemas/facture.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Reservation } from './reservation.schema';
@@ -12,11 +13,10 @@ export class Facture {
     ref: 'Reservation',
     required: true,
   })
-  reservation_id: Reservation;
+  reservation_id: Reservation | string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Client', required: true })
-  client_id: Client;
-
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Client', required: false }) // Changer required: true à required: false
+  client_id: Client | string;
   @Prop({ required: true })
   date_emission: Date;
 

@@ -16,7 +16,7 @@ let Reservation = class Reservation {
 };
 exports.Reservation = Reservation;
 __decorate([
-    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'Client', required: true }),
+    (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.ObjectId, ref: 'User', required: true }),
     __metadata("design:type", Object)
 ], Reservation.prototype, "utilisateur_id", void 0);
 __decorate([

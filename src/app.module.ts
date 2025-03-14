@@ -21,7 +21,7 @@ import {
   Authentification,
   AuthentificationSchema,
 } from './schemas/authentification.schema';
-import { Location, LocationSchema } from './schemas/location.schema';
+/* import { Location, LocationSchema } from './schemas/location.schema'; */
 import { Image, ImageSchema } from './schemas/image.schema';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
@@ -31,6 +31,12 @@ import { VehiclesModule } from './vehicles/vehicles.module';
 import { OffersModule } from './offers/offers.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { ClientsModule } from './clients/clients.module';
+import { LocationsModule } from './locations/locations.module';
+import {
+  LocationContrat,
+  LocationContratSchema,
+} from './schemas/location.schema';
+
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -52,7 +58,7 @@ import { ClientsModule } from './clients/clients.module';
       { name: FavoriVoiture.name, schema: FavoriVoitureSchema },
       { name: FavoriOffre.name, schema: FavoriOffreSchema },
       { name: Authentification.name, schema: AuthentificationSchema },
-      { name: Location.name, schema: LocationSchema },
+      { name: LocationContrat.name, schema: LocationContratSchema },
       { name: Image.name, schema: ImageSchema },
     ]),
     AuthModule,
@@ -61,6 +67,7 @@ import { ClientsModule } from './clients/clients.module';
     OffersModule,
     ReservationsModule,
     ClientsModule,
+    LocationsModule,
   ],
   controllers: [AppController],
   providers: [

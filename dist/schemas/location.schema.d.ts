@@ -1,8 +1,8 @@
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Reservation } from './reservation.schema';
-export type LocationDocument = Location & Document;
-export declare class Location {
-    reservation_id: Reservation;
+export type LocationContratDocument = LocationContrat & Document;
+export declare class LocationContrat {
+    reservation_id: Reservation | string;
     date_debut_reelle: Date;
     date_fin_reelle: Date;
     km_depart: number;
@@ -12,11 +12,11 @@ export declare class Location {
     frais_supplementaires: number;
     statut: string;
 }
-export declare const LocationSchema: MongooseSchema<Location, import("mongoose").Model<Location, any, any, any, Document<unknown, any, Location> & Location & {
+export declare const LocationContratSchema: MongooseSchema<LocationContrat, import("mongoose").Model<LocationContrat, any, any, any, Document<unknown, any, LocationContrat> & LocationContrat & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Location, Document<unknown, {}, import("mongoose").FlatRecord<Location>> & import("mongoose").FlatRecord<Location> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, LocationContrat, Document<unknown, {}, import("mongoose").FlatRecord<LocationContrat>> & import("mongoose").FlatRecord<LocationContrat> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

@@ -1,17 +1,18 @@
+// src/schemas/location.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Reservation } from './reservation.schema';
 
-export type LocationDocument = Location & Document;
+export type LocationContratDocument = LocationContrat & Document;
 
 @Schema()
-export class Location {
+export class LocationContrat {
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Reservation',
     required: true,
   })
-  reservation_id: Reservation;
+  reservation_id: Reservation | string;
 
   @Prop({ required: true })
   date_debut_reelle: Date;
@@ -38,4 +39,5 @@ export class Location {
   statut: string;
 }
 
-export const LocationSchema = SchemaFactory.createForClass(Location);
+export const LocationContratSchema =
+  SchemaFactory.createForClass(LocationContrat);

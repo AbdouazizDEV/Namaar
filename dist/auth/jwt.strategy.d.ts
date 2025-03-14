@@ -8,7 +8,7 @@ export declare class JwtStrategy extends JwtStrategy_base {
     private userModel;
     constructor(userModel: Model<UserDocument>);
     validate(payload: any): Promise<import("mongoose").Document<unknown, {}, UserDocument> & UserDocument & Required<{
-        _id: import("mongoose").Types.ObjectId;
+        _id: string | import("mongoose").Types.ObjectId;
     }> & {
         __v: number;
     }>;

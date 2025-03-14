@@ -21,7 +21,6 @@ const facture_schema_1 = require("./schemas/facture.schema");
 const paiement_schema_1 = require("./schemas/paiement.schema");
 const favori_schema_1 = require("./schemas/favori.schema");
 const authentification_schema_1 = require("./schemas/authentification.schema");
-const location_schema_1 = require("./schemas/location.schema");
 const image_schema_1 = require("./schemas/image.schema");
 const auth_module_1 = require("./auth/auth.module");
 const core_1 = require("@nestjs/core");
@@ -31,6 +30,8 @@ const vehicles_module_1 = require("./vehicles/vehicles.module");
 const offers_module_1 = require("./offers/offers.module");
 const reservations_module_1 = require("./reservations/reservations.module");
 const clients_module_1 = require("./clients/clients.module");
+const locations_module_1 = require("./locations/locations.module");
+const location_schema_1 = require("./schemas/location.schema");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -56,7 +57,7 @@ exports.AppModule = AppModule = __decorate([
                 { name: favori_schema_1.FavoriVoiture.name, schema: favori_schema_1.FavoriVoitureSchema },
                 { name: favori_schema_1.FavoriOffre.name, schema: favori_schema_1.FavoriOffreSchema },
                 { name: authentification_schema_1.Authentification.name, schema: authentification_schema_1.AuthentificationSchema },
-                { name: location_schema_1.Location.name, schema: location_schema_1.LocationSchema },
+                { name: location_schema_1.LocationContrat.name, schema: location_schema_1.LocationContratSchema },
                 { name: image_schema_1.Image.name, schema: image_schema_1.ImageSchema },
             ]),
             auth_module_1.AuthModule,
@@ -65,6 +66,7 @@ exports.AppModule = AppModule = __decorate([
             offers_module_1.OffersModule,
             reservations_module_1.ReservationsModule,
             clients_module_1.ClientsModule,
+            locations_module_1.LocationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

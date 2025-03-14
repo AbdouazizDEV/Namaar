@@ -1,3 +1,4 @@
+// src/schemas/paiement.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Facture } from './facture.schema';
@@ -8,14 +9,14 @@ export type PaiementDocument = Paiement & Document;
 @Schema()
 export class Paiement {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Facture', required: true })
-  facture_id: Facture;
+  facture_id: Facture | string;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
     ref: 'Reservation',
     required: true,
   })
-  reservation_id: Reservation;
+  reservation_id: Reservation | string;
 
   @Prop({ required: true })
   montant: number;
