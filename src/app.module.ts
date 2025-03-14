@@ -1,9 +1,9 @@
+// src/app.module.ts
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-
 import { User, UserSchema } from './schemas/user.schema';
 import { Client, ClientSchema } from './schemas/client.schema';
 import { Voiture, VoitureSchema } from './schemas/voiture.schema';
@@ -21,8 +21,12 @@ import {
   Authentification,
   AuthentificationSchema,
 } from './schemas/authentification.schema';
-/* import { Location, LocationSchema } from './schemas/location.schema'; */
+import {
+  LocationContrat,
+  LocationContratSchema,
+} from './schemas/location.schema';
 import { Image, ImageSchema } from './schemas/image.schema';
+import { Alerte, AlerteSchema } from './schemas/alerte.schema';
 import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
@@ -32,10 +36,7 @@ import { OffersModule } from './offers/offers.module';
 import { ReservationsModule } from './reservations/reservations.module';
 import { ClientsModule } from './clients/clients.module';
 import { LocationsModule } from './locations/locations.module';
-import {
-  LocationContrat,
-  LocationContratSchema,
-} from './schemas/location.schema';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import {
       { name: Authentification.name, schema: AuthentificationSchema },
       { name: LocationContrat.name, schema: LocationContratSchema },
       { name: Image.name, schema: ImageSchema },
+      { name: Alerte.name, schema: AlerteSchema },
     ]),
     AuthModule,
     CloudinaryModule,
@@ -68,6 +70,7 @@ import {
     ReservationsModule,
     ClientsModule,
     LocationsModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

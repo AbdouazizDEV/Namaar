@@ -21,7 +21,9 @@ const facture_schema_1 = require("./schemas/facture.schema");
 const paiement_schema_1 = require("./schemas/paiement.schema");
 const favori_schema_1 = require("./schemas/favori.schema");
 const authentification_schema_1 = require("./schemas/authentification.schema");
+const location_schema_1 = require("./schemas/location.schema");
 const image_schema_1 = require("./schemas/image.schema");
+const alerte_schema_1 = require("./schemas/alerte.schema");
 const auth_module_1 = require("./auth/auth.module");
 const core_1 = require("@nestjs/core");
 const jwt_auth_guard_1 = require("./auth/jwt-auth.guard");
@@ -31,7 +33,7 @@ const offers_module_1 = require("./offers/offers.module");
 const reservations_module_1 = require("./reservations/reservations.module");
 const clients_module_1 = require("./clients/clients.module");
 const locations_module_1 = require("./locations/locations.module");
-const location_schema_1 = require("./schemas/location.schema");
+const dashboard_module_1 = require("./dashboard/dashboard.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -59,6 +61,7 @@ exports.AppModule = AppModule = __decorate([
                 { name: authentification_schema_1.Authentification.name, schema: authentification_schema_1.AuthentificationSchema },
                 { name: location_schema_1.LocationContrat.name, schema: location_schema_1.LocationContratSchema },
                 { name: image_schema_1.Image.name, schema: image_schema_1.ImageSchema },
+                { name: alerte_schema_1.Alerte.name, schema: alerte_schema_1.AlerteSchema },
             ]),
             auth_module_1.AuthModule,
             cloudinary_module_1.CloudinaryModule,
@@ -67,6 +70,7 @@ exports.AppModule = AppModule = __decorate([
             reservations_module_1.ReservationsModule,
             clients_module_1.ClientsModule,
             locations_module_1.LocationsModule,
+            dashboard_module_1.DashboardModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
