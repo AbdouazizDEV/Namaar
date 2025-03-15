@@ -1,0 +1,30 @@
+import { Model } from 'mongoose';
+import { FavoriVoiture } from '../schemas/favori.schema';
+import { FavoriOffre } from '../schemas/favori.schema';
+import { Notification } from '../schemas/notification.schema';
+import { Voiture } from '../schemas/voiture.schema';
+import { Offre } from '../schemas/offre.schema';
+export declare class FavorisService {
+    private favoriVoitureModel;
+    private favoriOffreModel;
+    private notificationModel;
+    private voitureModel;
+    private offreModel;
+    constructor(favoriVoitureModel: Model<FavoriVoiture>, favoriOffreModel: Model<FavoriOffre>, notificationModel: Model<Notification>, voitureModel: Model<Voiture>, offreModel: Model<Offre>);
+    getFavorisVoitures(userId: string, populateDetails?: boolean): Promise<any[]>;
+    addFavoriVoiture(userId: string, voitureId: string): Promise<any>;
+    removeFavoriVoiture(userId: string, voitureId: string): Promise<any>;
+    checkVoitureFavori(userId: string, voitureId: string): Promise<any>;
+    getFavorisOffres(userId: string, populateDetails?: boolean): Promise<any[]>;
+    addFavoriOffre(userId: string, offreId: string): Promise<any>;
+    removeFavoriOffre(userId: string, offreId: string): Promise<any>;
+    checkOffreFavori(userId: string, offreId: string): Promise<any>;
+    getNotifications(_id: string): Promise<any[]>;
+    marquerNotificationLue(userId: string, notificationId: string): Promise<any>;
+    marquerToutesNotificationsLues(userId: string): Promise<any>;
+    supprimerNotification(userId: string, notificationId: string): Promise<any>;
+    supprimerToutesNotifications(userId: string): Promise<any>;
+    notifierChangementDisponibilite(voitureId: string, estDisponible: boolean): Promise<void>;
+    notifierChangementPrix(voitureId: string, ancienPrix: number, nouveauPrix: number): Promise<void>;
+    notifierNouvelleOffre(offreId: string): Promise<void>;
+}

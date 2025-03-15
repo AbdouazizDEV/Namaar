@@ -2,8 +2,24 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+
+// Modules existants
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { VehiclesModule } from './vehicles/vehicles.module';
+import { OffersModule } from './offers/offers.module';
+import { ReservationsModule } from './reservations/reservations.module';
+import { ClientsModule } from './clients/clients.module';
+import { LocationsModule } from './locations/locations.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { PublicModule } from './public/public.module';
+import { FavorisModule } from './favoris/favoris.module';
+
+// Schémas
 import { User, UserSchema } from './schemas/user.schema';
 import { Client, ClientSchema } from './schemas/client.schema';
 import { Voiture, VoitureSchema } from './schemas/voiture.schema';
@@ -27,17 +43,10 @@ import {
 } from './schemas/location.schema';
 import { Image, ImageSchema } from './schemas/image.schema';
 import { Alerte, AlerteSchema } from './schemas/alerte.schema';
-import { AuthModule } from './auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { CloudinaryModule } from './cloudinary/cloudinary.module';
-import { VehiclesModule } from './vehicles/vehicles.module';
-import { OffersModule } from './offers/offers.module';
-import { ReservationsModule } from './reservations/reservations.module';
-import { ClientsModule } from './clients/clients.module';
-import { LocationsModule } from './locations/locations.module';
-import { DashboardModule } from './dashboard/dashboard.module';
-import { PublicModule } from './public/public.module';
+import {
+  Notification,
+  NotificationSchema,
+} from './schemas/notification.schema';
 
 @Module({
   imports: [
@@ -63,6 +72,7 @@ import { PublicModule } from './public/public.module';
       { name: LocationContrat.name, schema: LocationContratSchema },
       { name: Image.name, schema: ImageSchema },
       { name: Alerte.name, schema: AlerteSchema },
+      { name: Notification.name, schema: NotificationSchema },
     ]),
     AuthModule,
     CloudinaryModule,
@@ -73,6 +83,7 @@ import { PublicModule } from './public/public.module';
     LocationsModule,
     DashboardModule,
     PublicModule,
+    FavorisModule, // Ajout du nouveau module
   ],
   controllers: [AppController],
   providers: [

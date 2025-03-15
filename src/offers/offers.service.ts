@@ -11,12 +11,16 @@ import { Voiture, VoitureDocument } from '../schemas/voiture.schema';
 import { CreateOfferDto } from './dto/create-offer.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
 import { FilterOffersDto } from './dto/filter-offers.dto';
+import { Inject, forwardRef } from '@nestjs/common';
+import { FavorisService } from '../favoris/favoris.service';
 
 @Injectable()
 export class OffersService {
   constructor(
     @InjectModel(Offre.name) private offreModel: Model<OffreDocument>,
     @InjectModel(Voiture.name) private voitureModel: Model<VoitureDocument>,
+    @Inject(forwardRef(() => FavorisService))
+    private readonly favorisService: FavorisService,
   ) {}
 
   async createOffer(createOfferDto: CreateOfferDto): Promise<Offre> {
@@ -48,6 +52,13 @@ export class OffersService {
     }
 
     const newOffer = new this.offreModel(createOfferDto);
+    const savedOffer = await newOffer.save();
+
+    // Notifier les utilisateurs ayant des véhicules en favoris concernés par cette offre
+    if (savedOffer.voitures && savedOffer.voitures.length > 0) {
+      const offerId = (savedOffer as any)._id.toString();
+      await this.favorisService.notifierNouvelleOffre(offerId);
+    }
     return newOffer.save();
   }
 

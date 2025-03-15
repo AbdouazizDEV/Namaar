@@ -11,6 +11,8 @@ import { Image, ImageDocument } from '../schemas/image.schema';
 import { CreateVehicleDto } from './dto/create-vehicle.dto';
 import { UpdateVehicleDto } from './dto/update-vehicle.dto';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
+import { Inject, forwardRef } from '@nestjs/common';
+import { FavorisService } from '../favoris/favoris.service';
 
 @Injectable()
 export class VehiclesService {
@@ -18,6 +20,8 @@ export class VehiclesService {
     @InjectModel(Voiture.name) private voitureModel: Model<VoitureDocument>,
     @InjectModel(Image.name) private imageModel: Model<ImageDocument>,
     private cloudinaryService: CloudinaryService,
+    @Inject(forwardRef(() => FavorisService))
+    private readonly favorisService: FavorisService,
   ) {}
 
   async createVehicle(
@@ -69,8 +73,16 @@ export class VehiclesService {
       throw new NotFoundException(`Véhicule avec l'ID ${id} non trouvé`);
     }
 
+    const ancienStatut = vehicle.disponibilite;
     vehicle.disponibilite = status;
-    return vehicle.save();
+    await vehicle.save();
+
+    // Notifier seulement si le statut a changé
+    if (ancienStatut !== status) {
+      await this.favorisService.notifierChangementDisponibilite(id, status);
+    }
+
+    return vehicle;
   }
 
   async getAllVehicles(): Promise<Voiture[]> {
@@ -121,7 +133,7 @@ export class VehiclesService {
   }
   async updateVehicle(
     id: string,
-    updateVehicleDto: UpdateVehicleDto, 
+    updateVehicleDto: UpdateVehicleDto,
     files?: Express.Multer.File[],
   ): Promise<Voiture> {
     const vehicle = await this.voitureModel.findById(id);
@@ -136,10 +148,11 @@ export class VehiclesService {
     // Si des nouvelles images sont fournies
     if (files && files.length > 0) {
       // Upload des images sur Cloudinary
-      const uploadResults = await this.cloudinaryService.uploadMultipleImages(files);
+      const uploadResults =
+        await this.cloudinaryService.uploadMultipleImages(files);
 
       // Récupérer les URLs des images
-      const imageUrls = uploadResults.map(result => result.secure_url);
+      const imageUrls = uploadResults.map((result) => result.secure_url);
 
       // Mettre à jour l'image principale dans le document voiture
       vehicle.images = [imageUrls[0]];
@@ -156,6 +169,14 @@ export class VehiclesService {
       });
 
       await Promise.all(imagePromises);
+      if (updateVehicleDto.prix_location !== undefined && 
+        vehicle.prix_location !== updateVehicleDto.prix_location) {
+        const ancienPrix = vehicle.prix_location;
+        const nouveauPrix = updateVehicleDto.prix_location;
+
+        // Après avoir sauvegardé le véhicule
+        await this.favorisService.notifierChangementPrix(id, ancienPrix, nouveauPrix);
+      }
     }
 
     return vehicle.save();

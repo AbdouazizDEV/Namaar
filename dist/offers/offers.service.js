@@ -18,10 +18,13 @@ const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 const offre_schema_1 = require("../schemas/offre.schema");
 const voiture_schema_1 = require("../schemas/voiture.schema");
+const common_2 = require("@nestjs/common");
+const favoris_service_1 = require("../favoris/favoris.service");
 let OffersService = class OffersService {
-    constructor(offreModel, voitureModel) {
+    constructor(offreModel, voitureModel, favorisService) {
         this.offreModel = offreModel;
         this.voitureModel = voitureModel;
+        this.favorisService = favorisService;
     }
     async createOffer(createOfferDto) {
         if (new Date(createOfferDto.date_fin) <= new Date(createOfferDto.date_debut)) {
@@ -39,6 +42,11 @@ let OffersService = class OffersService {
             createOfferDto.code_promo = this.generatePromoCode();
         }
         const newOffer = new this.offreModel(createOfferDto);
+        const savedOffer = await newOffer.save();
+        if (savedOffer.voitures && savedOffer.voitures.length > 0) {
+            const offerId = savedOffer._id.toString();
+            await this.favorisService.notifierNouvelleOffre(offerId);
+        }
         return newOffer.save();
     }
     async getAllOffers() {
@@ -140,7 +148,9 @@ exports.OffersService = OffersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(offre_schema_1.Offre.name)),
     __param(1, (0, mongoose_1.InjectModel)(voiture_schema_1.Voiture.name)),
+    __param(2, (0, common_2.Inject)((0, common_2.forwardRef)(() => favoris_service_1.FavorisService))),
     __metadata("design:paramtypes", [mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        favoris_service_1.FavorisService])
 ], OffersService);
 //# sourceMappingURL=offers.service.js.map

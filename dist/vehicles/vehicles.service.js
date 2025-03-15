@@ -19,11 +19,14 @@ const mongoose_2 = require("mongoose");
 const voiture_schema_1 = require("../schemas/voiture.schema");
 const image_schema_1 = require("../schemas/image.schema");
 const cloudinary_service_1 = require("../cloudinary/cloudinary.service");
+const common_2 = require("@nestjs/common");
+const favoris_service_1 = require("../favoris/favoris.service");
 let VehiclesService = class VehiclesService {
-    constructor(voitureModel, imageModel, cloudinaryService) {
+    constructor(voitureModel, imageModel, cloudinaryService, favorisService) {
         this.voitureModel = voitureModel;
         this.imageModel = imageModel;
         this.cloudinaryService = cloudinaryService;
+        this.favorisService = favorisService;
     }
     async createVehicle(createVehicleDto, files) {
         if (!files || files.length === 0) {
@@ -54,8 +57,13 @@ let VehiclesService = class VehiclesService {
         if (!vehicle) {
             throw new common_1.NotFoundException(`Véhicule avec l'ID ${id} non trouvé`);
         }
+        const ancienStatut = vehicle.disponibilite;
         vehicle.disponibilite = status;
-        return vehicle.save();
+        await vehicle.save();
+        if (ancienStatut !== status) {
+            await this.favorisService.notifierChangementDisponibilite(id, status);
+        }
+        return vehicle;
     }
     async getAllVehicles() {
         return this.voitureModel.find().exec();
@@ -91,7 +99,7 @@ let VehiclesService = class VehiclesService {
         Object.assign(vehicle, updateVehicleDto);
         if (files && files.length > 0) {
             const uploadResults = await this.cloudinaryService.uploadMultipleImages(files);
-            const imageUrls = uploadResults.map(result => result.secure_url);
+            const imageUrls = uploadResults.map((result) => result.secure_url);
             vehicle.images = [imageUrls[0]];
             const imagePromises = uploadResults.map((result, index) => {
                 const imageDoc = new this.imageModel({
@@ -103,6 +111,12 @@ let VehiclesService = class VehiclesService {
                 return imageDoc.save();
             });
             await Promise.all(imagePromises);
+            if (updateVehicleDto.prix_location !== undefined &&
+                vehicle.prix_location !== updateVehicleDto.prix_location) {
+                const ancienPrix = vehicle.prix_location;
+                const nouveauPrix = updateVehicleDto.prix_location;
+                await this.favorisService.notifierChangementPrix(id, ancienPrix, nouveauPrix);
+            }
         }
         return vehicle.save();
     }
@@ -120,8 +134,10 @@ exports.VehiclesService = VehiclesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, mongoose_1.InjectModel)(voiture_schema_1.Voiture.name)),
     __param(1, (0, mongoose_1.InjectModel)(image_schema_1.Image.name)),
+    __param(3, (0, common_2.Inject)((0, common_2.forwardRef)(() => favoris_service_1.FavorisService))),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
-        cloudinary_service_1.CloudinaryService])
+        cloudinary_service_1.CloudinaryService,
+        favoris_service_1.FavorisService])
 ], VehiclesService);
 //# sourceMappingURL=vehicles.service.js.map

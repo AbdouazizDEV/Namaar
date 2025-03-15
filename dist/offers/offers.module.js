@@ -13,6 +13,7 @@ const offers_controller_1 = require("./offers.controller");
 const offers_service_1 = require("./offers.service");
 const offre_schema_1 = require("../schemas/offre.schema");
 const voiture_schema_1 = require("../schemas/voiture.schema");
+const favoris_module_1 = require("../favoris/favoris.module");
 let OffersModule = class OffersModule {
 };
 exports.OffersModule = OffersModule;
@@ -23,9 +24,11 @@ exports.OffersModule = OffersModule = __decorate([
                 { name: offre_schema_1.Offre.name, schema: offre_schema_1.OffreSchema },
                 { name: voiture_schema_1.Voiture.name, schema: voiture_schema_1.VoitureSchema },
             ]),
+            (0, common_1.forwardRef)(() => favoris_module_1.FavorisModule),
         ],
         controllers: [offers_controller_1.OffersController],
         providers: [offers_service_1.OffersService],
+        exports: [offers_service_1.OffersService],
     })
 ], OffersModule);
 //# sourceMappingURL=offers.module.js.map

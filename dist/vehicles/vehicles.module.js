@@ -15,6 +15,7 @@ const voiture_schema_1 = require("../schemas/voiture.schema");
 const image_schema_1 = require("../schemas/image.schema");
 const cloudinary_module_1 = require("../cloudinary/cloudinary.module");
 const platform_express_1 = require("@nestjs/platform-express");
+const favoris_module_1 = require("../favoris/favoris.module");
 let VehiclesModule = class VehiclesModule {
 };
 exports.VehiclesModule = VehiclesModule;
@@ -31,9 +32,11 @@ exports.VehiclesModule = VehiclesModule = __decorate([
                     fileSize: 5 * 1024 * 1024,
                 },
             }),
+            (0, common_1.forwardRef)(() => favoris_module_1.FavorisModule),
         ],
         controllers: [vehicles_controller_1.VehiclesController],
         providers: [vehicles_service_1.VehiclesService],
+        exports: [vehicles_service_1.VehiclesService],
     })
 ], VehiclesModule);
 //# sourceMappingURL=vehicles.module.js.map
