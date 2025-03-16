@@ -8,6 +8,7 @@ import { Paiement, PaiementDocument } from '../schemas/paiement.schema';
 import { Facture, FactureDocument } from '../schemas/facture.schema';
 import { User, UserDocument } from '../schemas/user.schema';
 import { PaymentDto } from './dto/reservation-step.dto';
+import { PdfService } from '../shared/pdf.service';
 
 @Injectable()
 export class PaymentService {
@@ -22,13 +23,14 @@ export class PaymentService {
     private factureModel: Model<FactureDocument>,
     @InjectModel(User.name)
     private userModel: Model<UserDocument>,
+    private readonly pdfService: PdfService,
   ) {}
 
   async processPayment(userId: string, paymentDto: PaymentDto): Promise<Transaction> {
     const reservation = await this.reservationModel.findById(paymentDto.reservation_id)
       .populate('voiture_id')
       .populate('utilisateur_id');
-    
+
     if (!reservation) {
       throw new NotFoundException(`Réservation avec l'ID ${paymentDto.reservation_id} non trouvée`);
     }
@@ -56,15 +58,15 @@ export class PaymentService {
     const montantTotal = reservation.prix_total;
     const montantAcompte = Math.round(montantTotal * 0.3); // 30% d'acompte
     const montantAPayer = paymentDto.payer_acompte ? montantAcompte : montantTotal;
-    
+
     // Simuler une transaction avec un service de paiement externe
     // Dans un environnement réel, vous intégreriez ici un service comme Stripe, PayPal, etc.
     const paiementReussi = await this.simulerPaiement(paymentDto.token_paiement || 'default_token', montantAPayer);
-    
+
     if (!paiementReussi) {
       throw new BadRequestException('Le paiement a échoué. Veuillez réessayer avec une autre méthode de paiement.');
     }
-    
+
     // Créer une facture
     const facture = new this.factureModel({
       client_id: userId,
@@ -75,9 +77,9 @@ export class PaymentService {
       notes: paymentDto.payer_acompte ? 'Acompte payé' : 'Paiement intégral',
       statut: paymentDto.payer_acompte ? 'en_attente' : 'payée',
     });
-    
+
     const savedFacture = await facture.save();
-    
+
     // Créer un enregistrement de paiement
     const paiement = new this.paiementModel({
       facture_id: savedFacture._id,
@@ -88,9 +90,9 @@ export class PaymentService {
       date_paiement: new Date(),
       statut: 'validé',
     });
-    
+
     await paiement.save();
-    
+
     // Créer un enregistrement de transaction
     const transaction = new this.transactionModel({
       reservation_id: paymentDto.reservation_id,
@@ -105,12 +107,12 @@ export class PaymentService {
         paiement_id: paiement._id,
       },
     });
-    
+
     const savedTransaction = await transaction.save();
-    
+
     // Mettre à jour la réservation
     const nouveauStatut = paymentDto.payer_acompte ? 'en_attente' : 'confirmee';
-    
+
     await this.reservationModel.findByIdAndUpdate(
       paymentDto.reservation_id,
       {
@@ -120,7 +122,7 @@ export class PaymentService {
         statut: nouveauStatut,
       }
     );
-    
+
     // Si la réservation est confirmée (paiement total), mettre à jour la disponibilité du véhicule
     if (nouveauStatut === 'confirmee') {
       const voitureId = reservation.voiture_id;
@@ -331,5 +333,72 @@ export class PaymentService {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     return true;
+  }
+
+  // Ajout des méthodes pour la génération de documents dans payment.service.ts
+
+  // Ajouter ces méthodes au service de paiement existant
+
+  /**
+   * Génère une facture au format PDF pour une réservation
+   */
+  async generateInvoicePdf(
+    reservationId: string,
+  ): Promise<{ filePath: string; fileName: string }> {
+    const reservation = await this.reservationModel
+      .findById(reservationId)
+      .populate('voiture_id')
+      .populate('utilisateur_id')
+      .populate('options')
+      .populate('offre_id');
+
+    if (!reservation) {
+      throw new NotFoundException(
+        `Réservation avec l'ID ${reservationId} non trouvée`,
+      );
+    }
+
+    const facture = await this.factureModel.findOne({
+      eservation_id: reservationId,
+    });
+
+    if (!facture) {
+      throw new NotFoundException(
+        `Aucune facture trouvée pour la réservation ${reservationId}`,
+      );
+    }
+
+    const filePath = await this.pdfService.generateInvoice(reservation, facture);
+    const fileName = `facture-${facture._id}.pdf`;
+
+    return { filePath, fileName };
+  }
+
+  /**
+   * Récupère le chemin du fichier PDF de la facture s'il existe, sinon le génère
+   */
+  async getInvoicePdfPath(reservationId: string): Promise<{ filePath: string; fileName: string }> {
+    try {
+      // Vérifier si le fichier existe déjà
+      const existingFilePath = await this.findExistingInvoicePdf(reservationId);
+      if (existingFilePath) {
+        return existingFilePath;
+      }
+
+      // Générer un nouveau PDF
+      return this.generateInvoicePdf(reservationId);
+    } catch (error) {
+      throw new NotFoundException(`Impossible de générer la facture: ${error.message}`);
+    }
+  }
+
+  /**
+   * Recherche un fichier PDF de facture existant
+   */
+  private async findExistingInvoicePdf(reservationId: string): Promise<{ filePath: string; fileName: string } | null> {
+    // Cette méthode pourrait parcourir le répertoire des factures
+    // et vérifier si une facture pour cette réservation existe déjà
+    // Pour simplifier, nous retournons toujours null et générons une nouvelle facture
+    return null;
   }
 }

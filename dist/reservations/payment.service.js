@@ -21,13 +21,15 @@ const reservation_schema_1 = require("../schemas/reservation.schema");
 const paiement_schema_1 = require("../schemas/paiement.schema");
 const facture_schema_1 = require("../schemas/facture.schema");
 const user_schema_1 = require("../schemas/user.schema");
+const pdf_service_1 = require("../shared/pdf.service");
 let PaymentService = class PaymentService {
-    constructor(transactionModel, reservationModel, paiementModel, factureModel, userModel) {
+    constructor(transactionModel, reservationModel, paiementModel, factureModel, userModel, pdfService) {
         this.transactionModel = transactionModel;
         this.reservationModel = reservationModel;
         this.paiementModel = paiementModel;
         this.factureModel = factureModel;
         this.userModel = userModel;
+        this.pdfService = pdfService;
     }
     async processPayment(userId, paymentDto) {
         const reservation = await this.reservationModel.findById(paymentDto.reservation_id)
@@ -216,6 +218,41 @@ let PaymentService = class PaymentService {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return true;
     }
+    async generateInvoicePdf(reservationId) {
+        const reservation = await this.reservationModel
+            .findById(reservationId)
+            .populate('voiture_id')
+            .populate('utilisateur_id')
+            .populate('options')
+            .populate('offre_id');
+        if (!reservation) {
+            throw new common_1.NotFoundException(`Réservation avec l'ID ${reservationId} non trouvée`);
+        }
+        const facture = await this.factureModel.findOne({
+            eservation_id: reservationId,
+        });
+        if (!facture) {
+            throw new common_1.NotFoundException(`Aucune facture trouvée pour la réservation ${reservationId}`);
+        }
+        const filePath = await this.pdfService.generateInvoice(reservation, facture);
+        const fileName = `facture-${facture._id}.pdf`;
+        return { filePath, fileName };
+    }
+    async getInvoicePdfPath(reservationId) {
+        try {
+            const existingFilePath = await this.findExistingInvoicePdf(reservationId);
+            if (existingFilePath) {
+                return existingFilePath;
+            }
+            return this.generateInvoicePdf(reservationId);
+        }
+        catch (error) {
+            throw new common_1.NotFoundException(`Impossible de générer la facture: ${error.message}`);
+        }
+    }
+    async findExistingInvoicePdf(reservationId) {
+        return null;
+    }
 };
 exports.PaymentService = PaymentService;
 exports.PaymentService = PaymentService = __decorate([
@@ -229,6 +266,7 @@ exports.PaymentService = PaymentService = __decorate([
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        pdf_service_1.PdfService])
 ], PaymentService);
 //# sourceMappingURL=payment.service.js.map

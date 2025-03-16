@@ -10,6 +10,7 @@ exports.ReservationsModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const reservations_controller_1 = require("./reservations.controller");
+const client_reservations_controller_1 = require("./client-reservations.controller");
 const reservations_service_1 = require("./reservations.service");
 const reservation_schema_1 = require("../schemas/reservation.schema");
 const voiture_schema_1 = require("../schemas/voiture.schema");
@@ -19,9 +20,12 @@ const option_supplementaire_schema_1 = require("../schemas/option-supplementaire
 const transaction_schema_1 = require("../schemas/transaction.schema");
 const paiement_schema_1 = require("../schemas/paiement.schema");
 const facture_schema_1 = require("../schemas/facture.schema");
+const client_schema_1 = require("../schemas/client.schema");
 const options_service_1 = require("./options.service");
 const payment_service_1 = require("./payment.service");
 const options_controller_1 = require("./options.controller");
+const pdf_service_1 = require("../shared/pdf.service");
+const mail_service_1 = require("../locations/mail.service");
 let ReservationsModule = class ReservationsModule {
 };
 exports.ReservationsModule = ReservationsModule;
@@ -37,10 +41,21 @@ exports.ReservationsModule = ReservationsModule = __decorate([
                 { name: transaction_schema_1.Transaction.name, schema: transaction_schema_1.TransactionSchema },
                 { name: paiement_schema_1.Paiement.name, schema: paiement_schema_1.PaiementSchema },
                 { name: facture_schema_1.Facture.name, schema: facture_schema_1.FactureSchema },
+                { name: client_schema_1.Client.name, schema: client_schema_1.ClientSchema },
             ]),
         ],
-        controllers: [reservations_controller_1.ReservationsController, options_controller_1.OptionsController],
-        providers: [reservations_service_1.ReservationsService, options_service_1.OptionsService, payment_service_1.PaymentService],
+        controllers: [
+            reservations_controller_1.ReservationsController,
+            options_controller_1.OptionsController,
+            client_reservations_controller_1.ClientReservationsController,
+        ],
+        providers: [
+            reservations_service_1.ReservationsService,
+            options_service_1.OptionsService,
+            payment_service_1.PaymentService,
+            pdf_service_1.PdfService,
+            mail_service_1.MailService,
+        ],
         exports: [reservations_service_1.ReservationsService, options_service_1.OptionsService, payment_service_1.PaymentService],
     })
 ], ReservationsModule);
