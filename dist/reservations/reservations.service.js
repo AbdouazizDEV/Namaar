@@ -20,12 +20,16 @@ const reservation_schema_1 = require("../schemas/reservation.schema");
 const voiture_schema_1 = require("../schemas/voiture.schema");
 const offre_schema_1 = require("../schemas/offre.schema");
 const user_schema_1 = require("../schemas/user.schema");
+const option_supplementaire_schema_1 = require("../schemas/option-supplementaire.schema");
+const options_service_1 = require("./options.service");
 let ReservationsService = class ReservationsService {
-    constructor(reservationModel, voitureModel, offreModel, userModel) {
+    constructor(reservationModel, voitureModel, offreModel, userModel, optionModel, optionsService) {
         this.reservationModel = reservationModel;
         this.voitureModel = voitureModel;
         this.offreModel = offreModel;
         this.userModel = userModel;
+        this.optionModel = optionModel;
+        this.optionsService = optionsService;
     }
     async createReservation(userId, createReservationDto, isManager = false) {
         let clientId = userId;
@@ -80,7 +84,8 @@ let ReservationsService = class ReservationsService {
                     if (offre.statut === 'active' &&
                         dateActuelle >= new Date(offre.date_debut) &&
                         dateActuelle <= new Date(offre.date_fin)) {
-                        const offreApplicable = offre.voitures.some((v) => v.toString() === vehicle.id.toString());
+                        const vehicleId = String(vehicle._id);
+                        const offreApplicable = offre.voitures.some((v) => String(v) === vehicleId);
                         if (offreApplicable) {
                             prixTotal = prixTotal * (1 - offre.reduction / 100);
                         }
@@ -96,6 +101,11 @@ let ReservationsService = class ReservationsService {
                     throw new common_1.NotFoundException(`Offre avec l'ID ${createReservationDto.offre_id} non trouvée`);
                 }
             }
+            if (createReservationDto.options &&
+                createReservationDto.options.length > 0) {
+                const prixOptions = await this.optionsService.calculerPrixOptions(createReservationDto.options);
+                prixTotal += prixOptions;
+            }
         }
         const newReservation = new this.reservationModel({
             utilisateur_id: clientId,
@@ -106,8 +116,152 @@ let ReservationsService = class ReservationsService {
             prix_total: prixTotal,
             offre_id: createReservationDto.offre_id,
             date_reservation: new Date(),
+            options: createReservationDto.options || [],
+            etape_reservation: createReservationDto.etape_reservation || 1,
+            code_promo: createReservationDto.code_promo,
+            acompte_paye: createReservationDto.acompte_paye || false,
+            montant_acompte: createReservationDto.montant_acompte || 0,
+            commentaires: createReservationDto.commentaires,
         });
         return newReservation.save();
+    }
+    async startReservationProcess(userId, createReservationDto) {
+        createReservationDto.etape_reservation = 1;
+        return this.createReservation(userId, createReservationDto, false);
+    }
+    async moveToNextStep(userId, stepDto) {
+        const reservation = await this.reservationModel.findById(stepDto.reservation_id);
+        if (!reservation) {
+            throw new common_1.NotFoundException(`Réservation avec l'ID ${stepDto.reservation_id} non trouvée`);
+        }
+        console.log(reservation.utilisateur_id);
+        if (reservation.utilisateur_id.toString() === userId) {
+            throw new common_1.BadRequestException("'Vous n'êtes pas autorisé à modifier cette réservation'");
+        }
+        if (reservation.statut !== 'en_attente') {
+            throw new common_1.BadRequestException('Cette réservation ne peut pas être modifiée dans son état actuel');
+        }
+        const currentStep = reservation.etape_reservation;
+        if (stepDto.etape !== currentStep + 1 && stepDto.etape !== currentStep - 1) {
+            throw new common_1.BadRequestException(`Impossible de passer de l'étape ${currentStep} à l'étape ${stepDto.etape}`);
+        }
+        return this.reservationModel
+            .findByIdAndUpdate(stepDto.reservation_id, { etape_reservation: stepDto.etape }, { new: true })
+            .populate('voiture_id')
+            .populate('options')
+            .populate('offre_id')
+            .exec();
+    }
+    async selectOptions(userId, optionsDto) {
+        const reservation = await this.reservationModel.findById(optionsDto.reservation_id);
+        if (!reservation) {
+            throw new common_1.NotFoundException(`Réservation avec l'ID ${optionsDto.reservation_id} non trouvée`);
+        }
+        if (reservation.utilisateur_id.toString() === userId) {
+            throw new common_1.BadRequestException("'Vous n'êtes pas autorisé à modifier cette réservation'");
+        }
+        if (reservation.statut !== 'en_attente') {
+            throw new common_1.BadRequestException('Cette réservation ne peut pas être modifiée dans son état actuel');
+        }
+        if (reservation.etape_reservation !== 2) {
+            throw new common_1.BadRequestException("'Vous devez être à l'étape de sélection des options pour effectuer cette action'");
+        }
+        for (const optionId of optionsDto.options_ids) {
+            const option = await this.optionModel.findById(optionId);
+            if (!option) {
+                throw new common_1.NotFoundException(`Option avec l'ID ${optionId} non trouvée`);
+            }
+            if (!option.disponible) {
+                throw new common_1.BadRequestException(`L'option ${option.nom} n'est pas disponible actuellement`);
+            }
+        }
+        const vehicle = await this.voitureModel.findById(reservation.voiture_id);
+        if (!vehicle) {
+            throw new common_1.NotFoundException(`Voiture avec l'ID ${reservation.voiture_id} non trouvée`);
+        }
+        const nbJours = Math.ceil((reservation.date_fin.getTime() - reservation.date_debut.getTime()) / (1000 * 3600 * 24));
+        let prixTotal = vehicle.prix_location * nbJours;
+        if (reservation.offre_id) {
+            const offre = await this.offreModel.findById(reservation.offre_id);
+            if (offre && offre.statut === 'active') {
+                const vehicleId = String(vehicle._id);
+                const offreApplicable = offre.voitures.some((v) => String(v) === vehicleId);
+                if (offreApplicable) {
+                    prixTotal = prixTotal * (1 - offre.reduction / 100);
+                }
+            }
+        }
+        const prixOptions = await this.optionsService.calculerPrixOptions(optionsDto.options_ids);
+        prixTotal += prixOptions;
+        return this.reservationModel
+            .findByIdAndUpdate(optionsDto.reservation_id, {
+            options: optionsDto.options_ids,
+            prix_total: prixTotal,
+            etape_reservation: 3,
+        }, { new: true })
+            .populate('voiture_id')
+            .populate('options')
+            .populate('offre_id')
+            .exec();
+    }
+    async getReservationSummary(userId, reservationId) {
+        const reservation = await this.reservationModel.findById(reservationId)
+            .populate('voiture_id')
+            .populate('options')
+            .populate('offre_id')
+            .populate('utilisateur_id');
+        if (!reservation) {
+            throw new common_1.NotFoundException(`Réservation avec l'ID ${reservationId} non trouvée`);
+        }
+        const user = await this.userModel.findById(userId);
+        if (!user) {
+            throw new common_1.NotFoundException(`Utilisateur avec l'ID ${userId} non trouvé`);
+        }
+        if (reservation.utilisateur_id.toString() === userId &&
+            user.role !== 'gerant') {
+            throw new common_1.BadRequestException("Vous n'êtes pas autorisé à consulter cette réservation");
+        }
+        const montantAcompte = Math.round(reservation.prix_total * 0.3);
+        return {
+            reservation,
+            montantAcompte,
+            montantTotal: reservation.prix_total,
+            nbJours: Math.ceil((reservation.date_fin.getTime() - reservation.date_debut.getTime()) /
+                (1000 * 3600 * 24)),
+        };
+    }
+    async applyPromoCode(userId, reservationId, codePromo) {
+        const reservation = await this.reservationModel.findById(reservationId);
+        if (!reservation) {
+            throw new common_1.NotFoundException(`Réservation avec l'ID ${reservationId} non trouvée`);
+        }
+        if (reservation.utilisateur_id.toString() === userId) {
+            throw new common_1.BadRequestException("'Vous n'êtes pas autorisé à modifier cette réservation'");
+        }
+        if (reservation.statut !== 'en_attente') {
+            throw new common_1.BadRequestException('Cette réservation ne peut pas être modifiée dans son état actuel');
+        }
+        if (reservation.etape_reservation !== 3 &&
+            reservation.etape_reservation !== 4) {
+            throw new common_1.BadRequestException('Vous ne pouvez pas appliquer de code promo à cette étape');
+        }
+        const offre = await this.offreModel.findOne({
+            code_promo: codePromo,
+            statut: 'active',
+            date_debut: { $lte: new Date() },
+            date_fin: { $gte: new Date() },
+        });
+        const reduction = 0.1;
+        const nouveauPrix = reservation.prix_total * (1 - reduction);
+        return this.reservationModel
+            .findByIdAndUpdate(reservationId, {
+            code_promo: codePromo,
+            prix_total: nouveauPrix,
+        }, { new: true })
+            .populate('voiture_id')
+            .populate('options')
+            .populate('offre_id')
+            .exec();
     }
     async getClientReservations(clientId) {
         const client = await this.userModel.findById(clientId);
@@ -119,6 +273,7 @@ let ReservationsService = class ReservationsService {
             .populate('utilisateur_id', '-mot_de_passe')
             .populate('voiture_id')
             .populate('offre_id')
+            .populate('options')
             .exec();
     }
     async getAllReservations() {
@@ -127,6 +282,7 @@ let ReservationsService = class ReservationsService {
             .populate('utilisateur_id', '-mot_de_passe')
             .populate('voiture_id')
             .populate('offre_id')
+            .populate('options')
             .exec();
     }
     async getReservationById(id) {
@@ -135,6 +291,7 @@ let ReservationsService = class ReservationsService {
             .populate('utilisateur_id', '-mot_de_passe')
             .populate('voiture_id')
             .populate('offre_id')
+            .populate('options')
             .exec();
         if (!reservation) {
             throw new common_1.NotFoundException(`Réservation avec l'ID ${id} non trouvée`);
@@ -146,6 +303,7 @@ let ReservationsService = class ReservationsService {
             .find({ utilisateur_id: userId })
             .populate('voiture_id')
             .populate('offre_id')
+            .populate('options')
             .exec();
     }
     async updateReservation(id, updateReservationDto) {
@@ -180,7 +338,8 @@ let ReservationsService = class ReservationsService {
         if (updateReservationDto.voiture_id ||
             updateReservationDto.date_debut ||
             updateReservationDto.date_fin ||
-            updateReservationDto.offre_id) {
+            updateReservationDto.offre_id ||
+            updateReservationDto.options) {
             const voitureId = updateReservationDto.voiture_id || reservation.voiture_id;
             const dateDebut = updateReservationDto.date_debut
                 ? new Date(updateReservationDto.date_debut)
@@ -189,6 +348,9 @@ let ReservationsService = class ReservationsService {
                 ? new Date(updateReservationDto.date_fin)
                 : reservation.date_fin;
             const vehicle = await this.voitureModel.findById(voitureId);
+            if (!vehicle) {
+                throw new common_1.NotFoundException(`Voiture avec l'ID ${voitureId} non trouvée`);
+            }
             const nbJours = Math.ceil((dateFin.getTime() - dateDebut.getTime()) / (1000 * 3600 * 24));
             let prixTotal = vehicle.prix_location * nbJours;
             const offreId = updateReservationDto.offre_id || reservation.offre_id;
@@ -199,20 +361,20 @@ let ReservationsService = class ReservationsService {
                     if (offre.statut === 'active' &&
                         dateActuelle >= new Date(offre.date_debut) &&
                         dateActuelle <= new Date(offre.date_fin)) {
-                        if (vehicle) {
-                            const isVehicleEligible = vehicle._id && offre.voitures.some(v => v.toString() === vehicle._id.toString());
-                            if (isVehicleEligible) {
-                                prixTotal = prixTotal * (1 - offre.reduction / 100);
-                            }
-                            if (updateReservationDto.code_promo && offre.code_promo === updateReservationDto.code_promo) {
-                                prixTotal = prixTotal * 0.9;
-                            }
+                        const vehicleId = String(vehicle._id);
+                        const isVehicleEligible = offre.voitures.some(v => String(v) === vehicleId);
+                        if (isVehicleEligible) {
+                            prixTotal = prixTotal * (1 - offre.reduction / 100);
                         }
-                        else {
-                            throw new common_1.NotFoundException(`Voiture avec l'ID ${voitureId} non trouvée`);
+                        if (updateReservationDto.code_promo && offre.code_promo === updateReservationDto.code_promo) {
+                            prixTotal = prixTotal * 0.9;
                         }
                     }
                 }
+            }
+            if (updateReservationDto.options && updateReservationDto.options.length > 0) {
+                const prixOptions = await this.optionsService.calculerPrixOptions(updateReservationDto.options);
+                prixTotal += prixOptions;
             }
             updateReservationDto.prix_total = prixTotal;
         }
@@ -236,10 +398,8 @@ let ReservationsService = class ReservationsService {
             .populate('utilisateur_id', '-mot_de_passe')
             .populate('voiture_id')
             .populate('offre_id')
+            .populate('options')
             .exec();
-        if (!updatedReservation) {
-            throw new common_1.NotFoundException(`Réservation avec l'ID ${id} non trouvée`);
-        }
         return updatedReservation;
     }
     async changeReservationStatus(id, statut) {
@@ -279,6 +439,7 @@ let ReservationsService = class ReservationsService {
             .populate('utilisateur_id', '-mot_de_passe')
             .populate('voiture_id')
             .populate('offre_id')
+            .populate('options')
             .exec();
     }
     async deleteReservation(id) {
@@ -302,9 +463,12 @@ exports.ReservationsService = ReservationsService = __decorate([
     __param(1, (0, mongoose_1.InjectModel)(voiture_schema_1.Voiture.name)),
     __param(2, (0, mongoose_1.InjectModel)(offre_schema_1.Offre.name)),
     __param(3, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(4, (0, mongoose_1.InjectModel)(option_supplementaire_schema_1.OptionSupplementaire.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
-        mongoose_2.Model])
+        mongoose_2.Model,
+        mongoose_2.Model,
+        options_service_1.OptionsService])
 ], ReservationsService);
 //# sourceMappingURL=reservations.service.js.map

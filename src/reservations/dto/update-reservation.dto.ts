@@ -5,7 +5,9 @@ import {
   IsString,
   IsNumber,
   IsEnum,
+  IsArray,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -39,4 +41,27 @@ export class UpdateReservationDto {
   @IsOptional()
   @IsString()
   code_promo?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  options?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  etape_reservation?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  acompte_paye?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  montant_acompte?: number;
+
+  @IsOptional()
+  @IsString()
+  commentaires?: string;
 }

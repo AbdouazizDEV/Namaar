@@ -15,6 +15,13 @@ const reservation_schema_1 = require("../schemas/reservation.schema");
 const voiture_schema_1 = require("../schemas/voiture.schema");
 const offre_schema_1 = require("../schemas/offre.schema");
 const user_schema_1 = require("../schemas/user.schema");
+const option_supplementaire_schema_1 = require("../schemas/option-supplementaire.schema");
+const transaction_schema_1 = require("../schemas/transaction.schema");
+const paiement_schema_1 = require("../schemas/paiement.schema");
+const facture_schema_1 = require("../schemas/facture.schema");
+const options_service_1 = require("./options.service");
+const payment_service_1 = require("./payment.service");
+const options_controller_1 = require("./options.controller");
 let ReservationsModule = class ReservationsModule {
 };
 exports.ReservationsModule = ReservationsModule;
@@ -26,10 +33,15 @@ exports.ReservationsModule = ReservationsModule = __decorate([
                 { name: voiture_schema_1.Voiture.name, schema: voiture_schema_1.VoitureSchema },
                 { name: offre_schema_1.Offre.name, schema: offre_schema_1.OffreSchema },
                 { name: user_schema_1.User.name, schema: user_schema_1.UserSchema },
+                { name: option_supplementaire_schema_1.OptionSupplementaire.name, schema: option_supplementaire_schema_1.OptionSupplementaireSchema },
+                { name: transaction_schema_1.Transaction.name, schema: transaction_schema_1.TransactionSchema },
+                { name: paiement_schema_1.Paiement.name, schema: paiement_schema_1.PaiementSchema },
+                { name: facture_schema_1.Facture.name, schema: facture_schema_1.FactureSchema },
             ]),
         ],
-        controllers: [reservations_controller_1.ReservationsController],
-        providers: [reservations_service_1.ReservationsService],
+        controllers: [reservations_controller_1.ReservationsController, options_controller_1.OptionsController],
+        providers: [reservations_service_1.ReservationsService, options_service_1.OptionsService, payment_service_1.PaymentService],
+        exports: [reservations_service_1.ReservationsService, options_service_1.OptionsService, payment_service_1.PaymentService],
     })
 ], ReservationsModule);
 //# sourceMappingURL=reservations.module.js.map

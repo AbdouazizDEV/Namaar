@@ -6,4 +6,9 @@ export declare class UpdateReservationDto {
     statut?: string;
     prix_total?: number;
     code_promo?: string;
+    options?: string[];
+    etape_reservation?: number;
+    acompte_paye?: boolean;
+    montant_acompte?: number;
+    commentaires?: string;
 }

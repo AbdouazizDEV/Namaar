@@ -15,6 +15,9 @@ const class_transformer_1 = require("class-transformer");
 class CreateReservationDto {
     constructor() {
         this.statut = 'en_attente';
+        this.etape_reservation = 1;
+        this.acompte_paye = false;
+        this.montant_acompte = 0;
     }
 }
 exports.CreateReservationDto = CreateReservationDto;
@@ -55,4 +58,37 @@ __decorate([
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
 ], CreateReservationDto.prototype, "prix_total", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    __metadata("design:type", Array)
+], CreateReservationDto.prototype, "options", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateReservationDto.prototype, "code_promo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(1),
+    __metadata("design:type", Number)
+], CreateReservationDto.prototype, "etape_reservation", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsBoolean)(),
+    __metadata("design:type", Boolean)
+], CreateReservationDto.prototype, "acompte_paye", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    (0, class_validator_1.Min)(0),
+    __metadata("design:type", Number)
+], CreateReservationDto.prototype, "montant_acompte", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], CreateReservationDto.prototype, "commentaires", void 0);
 //# sourceMappingURL=create-reservation.dto.js.map

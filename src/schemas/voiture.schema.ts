@@ -2,7 +2,18 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export type VoitureDocument = Voiture & Document;
-
+export interface VoitureDocumentWithId extends VoitureDocument {
+  _id: string;
+  marque: string;
+  modele: string;
+  annee: number;
+  prix_location: number;
+  code: string;
+  categorie: string;
+  disponibilite: boolean;
+  images: string[];
+  description: string;
+}
 @Schema()
 export class Voiture {
   @Prop({ required: true })

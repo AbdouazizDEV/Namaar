@@ -15,15 +15,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReservationsController = void 0;
 const common_1 = require("@nestjs/common");
 const reservations_service_1 = require("./reservations.service");
+const payment_service_1 = require("./payment.service");
+const options_service_1 = require("./options.service");
 const create_reservation_dto_1 = require("./dto/create-reservation.dto");
 const update_reservation_dto_1 = require("./dto/update-reservation.dto");
 const filter_reservations_dto_1 = require("./dto/filter-reservations.dto");
+const reservation_step_dto_1 = require("./dto/reservation-step.dto");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
 const roles_guard_1 = require("../auth/roles.guard");
 const roles_decorator_1 = require("../auth/roles.decorator");
 let ReservationsController = class ReservationsController {
-    constructor(reservationsService) {
+    constructor(reservationsService, paymentService, optionsService) {
         this.reservationsService = reservationsService;
+        this.paymentService = paymentService;
+        this.optionsService = optionsService;
     }
     async createReservation(req, createReservationDto) {
         if (req.user.role === 'gérant' && createReservationDto.utilisateur_id) {
@@ -98,6 +103,24 @@ let ReservationsController = class ReservationsController {
             }
         }
         return this.reservationsService.deleteReservation(id);
+    }
+    async startReservationProcess(req, createReservationDto) {
+        return this.reservationsService.startReservationProcess(req.user._id, createReservationDto);
+    }
+    async moveToNextStep(req, stepDto) {
+        return this.reservationsService.moveToNextStep(req.user._id, stepDto);
+    }
+    async selectOptions(req, optionsDto) {
+        return this.reservationsService.selectOptions(req.user._id, optionsDto);
+    }
+    async getReservationSummary(req, id) {
+        return this.reservationsService.getReservationSummary(req.user._id, id);
+    }
+    async applyPromoCode(req, id, codePromo) {
+        return this.reservationsService.applyPromoCode(req.user._id, id, codePromo);
+    }
+    async processPayment(req, paymentDto) {
+        return this.paymentService.processPayment(req.user._id, paymentDto);
     }
     getDocumentId(doc) {
         if (!doc)
@@ -186,9 +209,62 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ReservationsController.prototype, "deleteReservation", null);
+__decorate([
+    (0, common_1.Post)('process/start'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, roles_decorator_1.Roles)('client'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, create_reservation_dto_1.CreateReservationDto]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "startReservationProcess", null);
+__decorate([
+    (0, common_1.Put)('process/step'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, reservation_step_dto_1.ReservationStepDto]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "moveToNextStep", null);
+__decorate([
+    (0, common_1.Put)('process/options'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, reservation_step_dto_1.OptionsSelectionDto]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "selectOptions", null);
+__decorate([
+    (0, common_1.Get)('process/summary/:id'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "getReservationSummary", null);
+__decorate([
+    (0, common_1.Put)('process/promo-code/:id'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)('code_promo', common_1.ValidationPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "applyPromoCode", null);
+__decorate([
+    (0, common_1.Post)('process/payment'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)(common_1.ValidationPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, reservation_step_dto_1.PaymentDto]),
+    __metadata("design:returntype", Promise)
+], ReservationsController.prototype, "processPayment", null);
 exports.ReservationsController = ReservationsController = __decorate([
     (0, common_1.Controller)('reservations'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __metadata("design:paramtypes", [reservations_service_1.ReservationsService])
+    __metadata("design:paramtypes", [reservations_service_1.ReservationsService,
+        payment_service_1.PaymentService,
+        options_service_1.OptionsService])
 ], ReservationsController);
 //# sourceMappingURL=reservations.controller.js.map

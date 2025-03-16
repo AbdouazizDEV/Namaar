@@ -6,14 +6,16 @@ import {
   IsString,
   IsNumber,
   IsEnum,
+  IsArray,
   Min,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateReservationDto {
   @IsOptional() // Optionnel pour le gérant qui spécifie l'utilisateur_id manuellement
   @IsString()
-  utilisateur_id?: string; // Ajout de ce champ
+  utilisateur_id?: string;
 
   @IsNotEmpty()
   @IsString()
@@ -40,4 +42,31 @@ export class CreateReservationDto {
   @IsNumber()
   @Min(0)
   prix_total?: number;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  options?: string[];
+
+  @IsOptional()
+  @IsString()
+  code_promo?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  etape_reservation?: number = 1;
+
+  @IsOptional()
+  @IsBoolean()
+  acompte_paye?: boolean = false;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  montant_acompte?: number = 0;
+
+  @IsOptional()
+  @IsString()
+  commentaires?: string;
 }

@@ -14,9 +14,12 @@ import {
 import { Voiture, VoitureDocument } from '../schemas/voiture.schema';
 import { Offre, OffreDocument } from '../schemas/offre.schema';
 import { User, UserDocument } from '../schemas/user.schema';
+import { OptionSupplementaire, OptionSupplementaireDocument } from '../schemas/option-supplementaire.schema';
 import { CreateReservationDto } from './dto/create-reservation.dto';
 import { UpdateReservationDto } from './dto/update-reservation.dto';
 import { FilterReservationsDto } from './dto/filter-reservations.dto';
+import { ReservationStepDto, OptionsSelectionDto } from './dto/reservation-step.dto';
+import { OptionsService } from './options.service';
 
 @Injectable()
 export class ReservationsService {
@@ -26,6 +29,9 @@ export class ReservationsService {
     @InjectModel(Voiture.name) private voitureModel: Model<VoitureDocument>,
     @InjectModel(Offre.name) private offreModel: Model<OffreDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(OptionSupplementaire.name)
+    private optionModel: Model<OptionSupplementaireDocument>,
+    private optionsService: OptionsService,
   ) {}
 
   async createReservation(
@@ -125,8 +131,10 @@ export class ReservationsService {
             dateActuelle <= new Date(offre.date_fin)
           ) {
             // Vérifier si l'offre s'applique à cette voiture
+            // CORRECTION : utilisation de String() au lieu de toString()
+            const vehicleId = String(vehicle._id);
             const offreApplicable = offre.voitures.some(
-              (v) => (v as any).toString() === vehicle.id.toString(),
+              (v) => String(v) === vehicleId
             );
             if (offreApplicable) {
               prixTotal = prixTotal * (1 - offre.reduction / 100);
@@ -146,6 +154,17 @@ export class ReservationsService {
           );
         }
       }
+
+      // Ajouter le prix des options si spécifiées
+      if (
+        createReservationDto.options &&
+        createReservationDto.options.length > 0
+      ) {
+        const prixOptions = await this.optionsService.calculerPrixOptions(
+          createReservationDto.options,
+        );
+        prixTotal += prixOptions;
+      }
     }
 
     // Créer la réservation
@@ -158,9 +177,285 @@ export class ReservationsService {
       prix_total: prixTotal,
       offre_id: createReservationDto.offre_id,
       date_reservation: new Date(),
+      options: createReservationDto.options || [],
+      etape_reservation: createReservationDto.etape_reservation || 1,
+      code_promo: createReservationDto.code_promo,
+      acompte_paye: createReservationDto.acompte_paye || false,
+      montant_acompte: createReservationDto.montant_acompte || 0,
+      commentaires: createReservationDto.commentaires,
     });
 
     return newReservation.save();
+  }
+
+  // Méthode pour commencer un processus de réservation
+  async startReservationProcess(
+    userId: string,
+    createReservationDto: CreateReservationDto,
+  ): Promise<Reservation> {
+    // Pour la première étape, on crée simplement la réservation
+    // avec l'étape_reservation définie à 1
+    createReservationDto.etape_reservation = 1;
+    return this.createReservation(userId, createReservationDto, false);
+  }
+
+  // Méthode pour passer à l'étape suivante
+  async moveToNextStep(
+    userId: string,
+    stepDto: ReservationStepDto,
+  ): Promise<Reservation | null> {
+    const reservation = await this.reservationModel.findById(
+      stepDto.reservation_id,
+    );
+
+    if (!reservation) {
+      throw new NotFoundException(
+        `Réservation avec l'ID ${stepDto.reservation_id} non trouvée`,
+      );
+    }
+    console.log(reservation.utilisateur_id);
+    // Vérifier que l'utilisateur est le propriétaire de la réservation
+    if (reservation.utilisateur_id.toString() === userId) {
+      throw new BadRequestException(
+        "'Vous n'êtes pas autorisé à modifier cette réservation'",
+      );
+    }
+
+    // Vérifier que la réservation est toujours en attente
+    if (reservation.statut !== 'en_attente') {
+      throw new BadRequestException(
+        'Cette réservation ne peut pas être modifiée dans son état actuel',
+      );
+    }
+
+    // Vérifier que l'étape demandée est valide (ne peut pas sauter d'étapes)
+    const currentStep = reservation.etape_reservation;
+    if (stepDto.etape !== currentStep + 1 && stepDto.etape !== currentStep - 1) {
+      throw new BadRequestException(`Impossible de passer de l'étape ${currentStep} à l'étape ${stepDto.etape}`);
+    }
+
+    // Mettre à jour l'étape de la réservation
+    return this.reservationModel
+      .findByIdAndUpdate(
+        stepDto.reservation_id,
+        { etape_reservation: stepDto.etape },
+        { new: true },
+      )
+      .populate('voiture_id')
+      .populate('options')
+      .populate('offre_id')
+      .exec();
+  }
+
+  // Méthode pour ajouter des options à une réservation
+  async selectOptions(
+    userId: string,
+    optionsDto: OptionsSelectionDto,
+  ): Promise<Reservation | null> {
+    const reservation = await this.reservationModel.findById(
+      optionsDto.reservation_id,
+    );
+
+    if (!reservation) {
+      throw new NotFoundException(
+        `Réservation avec l'ID ${optionsDto.reservation_id} non trouvée`,
+      );
+    }
+
+    // Vérifier que l'utilisateur est le propriétaire de la réservation
+    if (reservation.utilisateur_id.toString() === userId) {
+      throw new BadRequestException(
+        "'Vous n'êtes pas autorisé à modifier cette réservation'",
+      );
+    }
+
+    // Vérifier que la réservation est toujours en attente
+    if (reservation.statut !== 'en_attente') {
+      throw new BadRequestException(
+        'Cette réservation ne peut pas être modifiée dans son état actuel',
+      );
+    }
+
+    // Vérifier que nous sommes bien à l'étape des options (étape 2)
+    if (reservation.etape_reservation !== 2) {
+      throw new BadRequestException(
+        "'Vous devez être à l'étape de sélection des options pour effectuer cette action'",
+      );
+    }
+
+    // Vérifier que toutes les options existent et sont disponibles
+    for (const optionId of optionsDto.options_ids) {
+      const option = await this.optionModel.findById(optionId);
+      if (!option) {
+        throw new NotFoundException(`Option avec l'ID ${optionId} non trouvée`);
+      }
+      if (!option.disponible) {
+        throw new BadRequestException(`L'option ${option.nom} n'est pas disponible actuellement`);
+      }
+    }
+
+    // Calculer le prix total avec les nouvelles options
+    const vehicle = await this.voitureModel.findById(reservation.voiture_id);
+    if (!vehicle) {
+      throw new NotFoundException(`Voiture avec l'ID ${reservation.voiture_id} non trouvée`);
+    }
+    const nbJours = Math.ceil(
+      (reservation.date_fin.getTime() - reservation.date_debut.getTime()) / (1000 * 3600 * 24)
+    );
+
+    let prixTotal = vehicle.prix_location * nbJours;
+
+    // Appliquer la réduction de l'offre si présente
+    if (reservation.offre_id) {
+      const offre = await this.offreModel.findById(reservation.offre_id);
+      if (offre && offre.statut === 'active') {
+        // CORRECTION : utilisation de String() au lieu de toString()
+        const vehicleId = String(vehicle._id);
+        const offreApplicable = offre.voitures.some(
+          (v) => String(v) === vehicleId
+        );
+        if (offreApplicable) {
+          prixTotal = prixTotal * (1 - offre.reduction / 100);
+        }
+      }
+    }
+
+    // Ajouter le prix des options
+    const prixOptions = await this.optionsService.calculerPrixOptions(
+      optionsDto.options_ids,
+    );
+    prixTotal += prixOptions;
+
+    // Mettre à jour la réservation avec les options et le nouveau prix
+    return this.reservationModel
+      .findByIdAndUpdate(
+        optionsDto.reservation_id,
+        {
+          options: optionsDto.options_ids,
+          prix_total: prixTotal,
+          etape_reservation: 3, // Passer automatiquement à l'étape de récapitulatif
+        },
+        { new: true },
+      )
+      .populate('voiture_id')
+      .populate('options')
+      .populate('offre_id')
+      .exec();
+  }
+  // Obtenir le récapitulatif d'une réservation
+  async getReservationSummary(userId: string, reservationId: string): Promise<any> {
+    const reservation = await this.reservationModel.findById(reservationId)
+      .populate('voiture_id')
+      .populate('options')
+      .populate('offre_id')
+      .populate('utilisateur_id');
+
+    if (!reservation) {
+      throw new NotFoundException(
+        `Réservation avec l'ID ${reservationId} non trouvée`,
+      );
+    }
+
+    // Vérifier que l'utilisateur est le propriétaire de la réservation ou un gérant
+    const user = await this.userModel.findById(userId);
+    if (!user) {
+      throw new NotFoundException(`Utilisateur avec l'ID ${userId} non trouvé`);
+    }
+
+    if (
+      reservation.utilisateur_id.toString() === userId && 
+      user.role !== 'gerant'
+    ) {
+      throw new BadRequestException(
+        "Vous n'êtes pas autorisé à consulter cette réservation",
+      );
+    }
+
+    // Calculer le montant de l'acompte (30% du prix total)
+    const montantAcompte = Math.round(reservation.prix_total * 0.3);
+
+    // Préparer le récapitulatif
+    return {
+      reservation,
+      montantAcompte,
+      montantTotal: reservation.prix_total,
+      nbJours: Math.ceil(
+        (reservation.date_fin.getTime() - reservation.date_debut.getTime()) /
+          (1000 * 3600 * 24),
+      ),
+    };
+  }
+
+  // Méthode pour appliquer un code promo à la réservation
+  async applyPromoCode(
+    userId: string,
+    reservationId: string,
+    codePromo: string,
+  ): Promise<Reservation | null> {
+    const reservation = await this.reservationModel.findById(reservationId);
+
+    if (!reservation) {
+      throw new NotFoundException(
+        `Réservation avec l'ID ${reservationId} non trouvée`,
+      );
+    }
+
+    // Vérifier que l'utilisateur est le propriétaire de la réservation
+    if (reservation.utilisateur_id.toString() === userId) {
+      throw new BadRequestException(
+        "'Vous n'êtes pas autorisé à modifier cette réservation'",
+      );
+    }
+
+    // Vérifier que la réservation est toujours en attente
+    if (reservation.statut !== 'en_attente') {
+      throw new BadRequestException(
+        'Cette réservation ne peut pas être modifiée dans son état actuel',
+      );
+    }
+
+    // Vérifier que nous sommes bien à l'étape du récapitulatif (étape 3) ou du paiement (étape 4)
+    if (
+      reservation.etape_reservation !== 3 &&
+      reservation.etape_reservation !== 4
+    ) {
+      throw new BadRequestException(
+        'Vous ne pouvez pas appliquer de code promo à cette étape',
+      );
+    }
+
+    // Vérifier que le code promo existe et est valide
+    // Exemple : recherche dans les offres ayant un code promo correspondant
+    const offre = await this.offreModel.findOne({
+      code_promo: codePromo,
+      statut: 'active',
+      date_debut: { $lte: new Date() },
+      date_fin: { $gte: new Date() },
+    });
+
+    /* if (!offre) {
+      throw new BadRequestException('Ce code promo est invalide ou expiré');
+    } */
+
+    // Recalculer le prix total avec la réduction du code promo
+    // Par exemple, appliquer une réduction supplémentaire de 10%
+    const reduction = 0.1; // 10% de réduction
+    const nouveauPrix = reservation.prix_total * (1 - reduction);
+
+    // Mettre à jour la réservation avec le code promo et le nouveau prix
+    return this.reservationModel
+      .findByIdAndUpdate(
+        reservationId,
+        {
+          code_promo: codePromo,
+          prix_total: nouveauPrix,
+        },
+        { new: true },
+      )
+      .populate('voiture_id')
+      .populate('options')
+      .populate('offre_id')
+      .exec();
   }
 
   async getClientReservations(clientId: string): Promise<Reservation[]> {
@@ -174,14 +469,17 @@ export class ReservationsService {
       .populate('utilisateur_id', '-mot_de_passe')
       .populate('voiture_id')
       .populate('offre_id')
+      .populate('options')
       .exec();
   }
+
   async getAllReservations(): Promise<Reservation[]> {
     return this.reservationModel
       .find()
       .populate('utilisateur_id', '-mot_de_passe')
       .populate('voiture_id')
       .populate('offre_id')
+      .populate('options')
       .exec();
   }
 
@@ -191,6 +489,7 @@ export class ReservationsService {
       .populate('utilisateur_id', '-mot_de_passe')
       .populate('voiture_id')
       .populate('offre_id')
+      .populate('options')
       .exec();
 
     if (!reservation) {
@@ -205,13 +504,14 @@ export class ReservationsService {
       .find({ utilisateur_id: userId })
       .populate('voiture_id')
       .populate('offre_id')
+      .populate('options')
       .exec();
   }
 
   async updateReservation(
     id: string,
     updateReservationDto: UpdateReservationDto,
-  ): Promise<Reservation> {
+  ): Promise<Reservation | null> {
     const reservation = await this.reservationModel.findById(id);
     if (!reservation) {
       throw new NotFoundException(`Réservation avec l'ID ${id} non trouvée`);
@@ -259,7 +559,8 @@ export class ReservationsService {
       updateReservationDto.voiture_id ||
       updateReservationDto.date_debut ||
       updateReservationDto.date_fin ||
-      updateReservationDto.offre_id
+      updateReservationDto.offre_id ||
+      updateReservationDto.options
     ) {
       const voitureId =
         updateReservationDto.voiture_id || reservation.voiture_id;
@@ -272,11 +573,14 @@ export class ReservationsService {
         : reservation.date_fin;
 
       const vehicle = await this.voitureModel.findById(voitureId);
+      if (!vehicle) {
+        throw new NotFoundException(`Voiture avec l'ID ${voitureId} non trouvée`);
+      }
 
       const nbJours = Math.ceil(
         (dateFin.getTime() - dateDebut.getTime()) / (1000 * 3600 * 24),
       );
-      let prixTotal = vehicle!.prix_location * nbJours;
+      let prixTotal = vehicle.prix_location * nbJours;
 
       const offreId = updateReservationDto.offre_id || reservation.offre_id;
       if (offreId) {
@@ -289,22 +593,25 @@ export class ReservationsService {
             dateActuelle <= new Date(offre.date_fin)
           ) {
             // Vérifier si l'offre s'applique à cette voiture
-            if (vehicle) {
-              // Vérifier si l'offre s'applique à cette voiture
-              const isVehicleEligible = (vehicle._id as Object) && offre.voitures.some(v => v.toString() === (vehicle._id as Object).toString());
-              // Appliquer la réduction si le véhicule est éligible
-              if (isVehicleEligible) {
-                prixTotal = prixTotal * (1 - offre.reduction / 100);
-              }
-              // Vérifier le code promo (assurez-vous d'ajouter code_promo au UpdateReservationDto)
-              if (updateReservationDto.code_promo && offre.code_promo === updateReservationDto.code_promo) {
-                prixTotal = prixTotal * 0.9; // Réduction supplémentaire de 10%
-              }
-            } else {
-            throw new NotFoundException(`Voiture avec l'ID ${voitureId} non trouvée`);
+            // CORRECTION : utilisation de String() au lieu de toString()
+            const vehicleId = String(vehicle._id);
+            const isVehicleEligible = offre.voitures.some(v => String(v) === vehicleId);
+            // Appliquer la réduction si le véhicule est éligible
+            if (isVehicleEligible) {
+              prixTotal = prixTotal * (1 - offre.reduction / 100);
+            }
+            // Vérifier le code promo
+            if (updateReservationDto.code_promo && offre.code_promo === updateReservationDto.code_promo) {
+              prixTotal = prixTotal * 0.9; // Réduction supplémentaire de 10%
             }
           }
         }
+      }
+
+      // Ajouter le prix des options
+      if (updateReservationDto.options && updateReservationDto.options.length > 0) {
+        const prixOptions = await this.optionsService.calculerPrixOptions(updateReservationDto.options);
+        prixTotal += prixOptions;
       }
 
       updateReservationDto.prix_total = prixTotal;
@@ -340,18 +647,16 @@ export class ReservationsService {
       .populate('utilisateur_id', '-mot_de_passe')
       .populate('voiture_id')
       .populate('offre_id')
+      .populate('options')
       .exec();
 
-    if (!updatedReservation) {
-      throw new NotFoundException(`Réservation avec l'ID ${id} non trouvée`);
-    }
     return updatedReservation;
   }
 
   async changeReservationStatus(
     id: string,
     statut: string,
-  ): Promise<Reservation> {
+  ): Promise<Reservation | null> {
     return this.updateReservation(id, { statut });
   }
 
@@ -401,6 +706,7 @@ export class ReservationsService {
       .populate('utilisateur_id', '-mot_de_passe')
       .populate('voiture_id')
       .populate('offre_id')
+      .populate('options')
       .exec();
   }
 
