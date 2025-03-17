@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DashboardRequestDto = exports.PeriodeType = void 0;
 const class_validator_1 = require("class-validator");
+const swagger_1 = require("@nestjs/swagger");
 var PeriodeType;
 (function (PeriodeType) {
     PeriodeType["JOUR"] = "jour";
@@ -22,16 +23,32 @@ class DashboardRequestDto {
 }
 exports.DashboardRequestDto = DashboardRequestDto;
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '2023-01-01',
+        description: "'Date de début de la période d'analyse'",
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], DashboardRequestDto.prototype, "dateDebut", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        example: '2023-12-31',
+        description: "'Date de fin de la période d'analyse'",
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsDateString)(),
     __metadata("design:type", String)
 ], DashboardRequestDto.prototype, "dateFin", void 0);
 __decorate([
+    (0, swagger_1.ApiProperty)({
+        enum: PeriodeType,
+        example: 'mois',
+        description: "'Type de période pour l'agrégation des données'",
+        required: false,
+    }),
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsEnum)(PeriodeType),
     __metadata("design:type", String)
