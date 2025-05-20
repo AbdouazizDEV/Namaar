@@ -7,11 +7,11 @@ export declare class Image {
     est_principale: boolean;
     date_ajout: Date;
 }
-export declare const ImageSchema: MongooseSchema<Image, import("mongoose").Model<Image, any, any, any, Document<unknown, any, Image> & Image & {
+export declare const ImageSchema: MongooseSchema<Image, import("mongoose").Model<Image, any, any, any, Document<unknown, any, Image, any> & Image & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Image, Document<unknown, {}, import("mongoose").FlatRecord<Image>> & import("mongoose").FlatRecord<Image> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Image, Document<unknown, {}, import("mongoose").FlatRecord<Image>, {}> & import("mongoose").FlatRecord<Image> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

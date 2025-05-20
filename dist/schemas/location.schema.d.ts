@@ -12,11 +12,11 @@ export declare class LocationContrat {
     frais_supplementaires: number;
     statut: string;
 }
-export declare const LocationContratSchema: MongooseSchema<LocationContrat, import("mongoose").Model<LocationContrat, any, any, any, Document<unknown, any, LocationContrat> & LocationContrat & {
+export declare const LocationContratSchema: MongooseSchema<LocationContrat, import("mongoose").Model<LocationContrat, any, any, any, Document<unknown, any, LocationContrat, any> & LocationContrat & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, LocationContrat, Document<unknown, {}, import("mongoose").FlatRecord<LocationContrat>> & import("mongoose").FlatRecord<LocationContrat> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, LocationContrat, Document<unknown, {}, import("mongoose").FlatRecord<LocationContrat>, {}> & import("mongoose").FlatRecord<LocationContrat> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

@@ -11,11 +11,11 @@ export declare class Facture {
     notes: string;
     statut: string;
 }
-export declare const FactureSchema: MongooseSchema<Facture, import("mongoose").Model<Facture, any, any, any, Document<unknown, any, Facture> & Facture & {
+export declare const FactureSchema: MongooseSchema<Facture, import("mongoose").Model<Facture, any, any, any, Document<unknown, any, Facture, any> & Facture & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Facture, Document<unknown, {}, import("mongoose").FlatRecord<Facture>> & import("mongoose").FlatRecord<Facture> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Facture, Document<unknown, {}, import("mongoose").FlatRecord<Facture>, {}> & import("mongoose").FlatRecord<Facture> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

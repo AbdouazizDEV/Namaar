@@ -11,11 +11,11 @@ export declare class Paiement {
     date_paiement: Date;
     statut: string;
 }
-export declare const PaiementSchema: MongooseSchema<Paiement, import("mongoose").Model<Paiement, any, any, any, Document<unknown, any, Paiement> & Paiement & {
+export declare const PaiementSchema: MongooseSchema<Paiement, import("mongoose").Model<Paiement, any, any, any, Document<unknown, any, Paiement, any> & Paiement & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;
-}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Paiement, Document<unknown, {}, import("mongoose").FlatRecord<Paiement>> & import("mongoose").FlatRecord<Paiement> & {
+}, any>, {}, {}, {}, {}, import("mongoose").DefaultSchemaOptions, Paiement, Document<unknown, {}, import("mongoose").FlatRecord<Paiement>, {}> & import("mongoose").FlatRecord<Paiement> & {
     _id: import("mongoose").Types.ObjectId;
 } & {
     __v: number;

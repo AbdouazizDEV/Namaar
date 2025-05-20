@@ -24,28 +24,28 @@ export declare class LocationsService {
     private mailService;
     private pdfService;
     constructor(locationModel: Model<LocationContratDocument>, reservationModel: Model<ReservationDocument>, voitureModel: Model<VoitureDocument>, userModel: Model<UserDocument>, factureModel: Model<FactureDocument>, paiementModel: Model<PaiementDocument>, clientModel: Model<ClientDocument>, offreModel: Model<OffreDocument>, mailService: MailService, pdfService: PdfService);
-    getAllLocations(): Promise<(import("mongoose").Document<unknown, {}, LocationContratDocument> & LocationContrat & import("mongoose").Document<unknown, any, any> & Required<{
+    getAllLocations(): Promise<(import("mongoose").Document<unknown, {}, LocationContratDocument, {}> & LocationContrat & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     })[]>;
-    getLocationById(id: string): Promise<import("mongoose").Document<unknown, {}, LocationContratDocument> & LocationContrat & import("mongoose").Document<unknown, any, any> & Required<{
+    getLocationById(id: string): Promise<import("mongoose").Document<unknown, {}, LocationContratDocument, {}> & LocationContrat & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
-    startContract(startContractDto: StartContractDto): Promise<import("mongoose").Document<unknown, {}, LocationContratDocument> & LocationContrat & import("mongoose").Document<unknown, any, any> & Required<{
+    startContract(startContractDto: StartContractDto): Promise<import("mongoose").Document<unknown, {}, LocationContratDocument, {}> & LocationContrat & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
     endContract(id: string, endContractDto: EndContractDto): Promise<{
-        location: import("mongoose").Document<unknown, {}, LocationContratDocument> & LocationContrat & import("mongoose").Document<unknown, any, any> & Required<{
+        location: import("mongoose").Document<unknown, {}, LocationContratDocument, {}> & LocationContrat & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
             _id: unknown;
         }> & {
             __v: number;
         };
-        facture: import("mongoose").Document<unknown, {}, FactureDocument> & Facture & import("mongoose").Document<unknown, any, any> & Required<{
+        facture: import("mongoose").Document<unknown, {}, FactureDocument, {}> & Facture & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
             _id: unknown;
         }> & {
             __v: number;
@@ -55,39 +55,39 @@ export declare class LocationsService {
         reservation_id: string;
         client_id: string;
         montant_total?: number;
-    }): Promise<import("mongoose").Document<unknown, {}, FactureDocument> & Facture & import("mongoose").Document<unknown, any, any> & Required<{
+    }): Promise<import("mongoose").Document<unknown, {}, FactureDocument, {}> & Facture & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
-    generateInvoice(location: LocationContratDocument): Promise<import("mongoose").Document<unknown, {}, FactureDocument> & Facture & import("mongoose").Document<unknown, any, any> & Required<{
+    generateInvoice(location: LocationContratDocument): Promise<import("mongoose").Document<unknown, {}, FactureDocument, {}> & Facture & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
-    createPayment(reservationId: string, createPaymentDto: CreatePaymentDto): Promise<import("mongoose").Document<unknown, {}, PaiementDocument> & Paiement & import("mongoose").Document<unknown, any, any> & Required<{
+    createPayment(reservationId: string, createPaymentDto: CreatePaymentDto): Promise<import("mongoose").Document<unknown, {}, PaiementDocument, {}> & Paiement & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     }>;
-    getInvoices(clientId?: string): Promise<(import("mongoose").Document<unknown, {}, FactureDocument> & Facture & import("mongoose").Document<unknown, any, any> & Required<{
+    getInvoices(clientId?: string): Promise<(import("mongoose").Document<unknown, {}, FactureDocument, {}> & Facture & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
     })[]>;
     getInvoiceById(id: string): Promise<{
-        facture: import("mongoose").Document<unknown, {}, FactureDocument> & Facture & import("mongoose").Document<unknown, any, any> & Required<{
+        facture: import("mongoose").Document<unknown, {}, FactureDocument, {}> & Facture & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
             _id: unknown;
         }> & {
             __v: number;
         };
-        paiements: (import("mongoose").Document<unknown, {}, PaiementDocument> & Paiement & import("mongoose").Document<unknown, any, any> & Required<{
+        paiements: (import("mongoose").Document<unknown, {}, PaiementDocument, {}> & Paiement & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
             _id: unknown;
         }> & {
             __v: number;
         })[];
     }>;
-    getPayments(factureId?: string): Promise<(import("mongoose").Document<unknown, {}, PaiementDocument> & Paiement & import("mongoose").Document<unknown, any, any> & Required<{
+    getPayments(factureId?: string): Promise<(import("mongoose").Document<unknown, {}, PaiementDocument, {}> & Paiement & import("mongoose").Document<unknown, any, any, Record<string, any>> & Required<{
         _id: unknown;
     }> & {
         __v: number;
